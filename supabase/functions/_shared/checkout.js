@@ -1,6 +1,7 @@
 // Checkout rules shared by the browser (src/pages/Checkout.jsx) and the
-// server (api/create-checkout.js), so validation can't drift between them.
-// Plain JS with no imports: it runs in both environments.
+// create-checkout Edge Function, so validation can't drift between them.
+// Plain JS with no imports: it runs in both Vite and Deno. It lives under
+// supabase/functions/_shared because only that tree is bundled on deploy.
 
 export const DELIVERY_TYPES = ['home', 'desk']
 export const PAYMENT_METHODS = ['cod', 'edahabia', 'cib']
@@ -19,7 +20,7 @@ export const isValidPhone = (input) => /^0[567]\d{8}$/.test(normalizePhone(input
 
 // Every piece is second-hand and one of a kind, so one is all there is.
 // Kept as a function so a future stock column only changes this line.
-export const maxQuantity = () => 1
+export const maxQuantity = (_product) => 1
 
 // Delivery price for a delivery_rates row, or null when that option isn't
 // offered there: its price is null (or there's no row for the wilaya).

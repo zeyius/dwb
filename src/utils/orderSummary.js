@@ -1,6 +1,7 @@
 // Hand-off from /checkout to /checkout/success for cash-on-delivery orders:
 // the success page can't read the orders table (RLS), so the checkout page
-// stores the server-computed summary it got back from /api/create-checkout.
+// stores the server-computed summary it got back from the create-checkout
+// Edge Function.
 // sessionStorage, keyed by order id, so a reload of the success page still works.
 const key = (orderId) => `checkout:order:${orderId}`
 

@@ -17,7 +17,7 @@ begin
   end if;
 end $$;
 
--- 2. One row per wilaya, codes 1-58 (same codes as src/data/algeria.json),
+-- 2. One row per wilaya, codes 1-58 (same codes as supabase/functions/_shared/algeria.json),
 --    for any wilaya that doesn't have one yet. Prices start NULL, which the
 --    checkout treats as "not offered". Existing rows are left alone. Then e.g.:
 --      update delivery_rates set home_price = 600, desk_price = 400 where wilaya_code = 16;

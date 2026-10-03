@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { maxQuantity } from '../utils/checkout'
+import { maxQuantity } from '../../supabase/functions/_shared/checkout.js'
 import { productImages } from '../utils/product'
 
 // Second-hand pieces are one-offs, so the cart holds each product at most once

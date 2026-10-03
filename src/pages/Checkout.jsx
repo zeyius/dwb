@@ -1,10 +1,11 @@
 import { cloneElement, useEffect, useId, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { createCheckout } from '../api/checkout'
 import { getDeliveryRates } from '../api/deliveryRates'
 import { getProductsByIds } from '../api/products'
 import { CardIcon, CashIcon, CheckIcon, ChevronUpIcon, TrashIcon } from '../components/Icons'
 import { useCart } from '../context/CartContext'
-import algeria from '../data/algeria.json'
+import algeria from '../../supabase/functions/_shared/algeria.json'
 import { t } from '../i18n'
 import {
   deliveryPrice,
@@ -14,7 +15,7 @@ import {
   isValidPhone,
   ONLINE_PAYMENT_METHODS,
   validateCustomer,
-} from '../utils/checkout'
+} from '../../supabase/functions/_shared/checkout.js'
 import { saveOrderSummary } from '../utils/orderSummary'
 import { formatPrice } from '../utils/product'
 
@@ -162,21 +163,16 @@ export default function Checkout() {
     setSubmitting(true)
     try {
       const lang = document.documentElement.lang.slice(0, 2)
-      const res = await fetch('/api/create-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: items.map(({ id, quantity }) => ({ id, quantity })),
-          customer: { ...form, delivery_type: deliveryType, phone: normalizePhone(form.phone) },
-          locale: LOCALES.includes(lang) ? lang : 'fr',
-        }),
+      const { ok, body } = await createCheckout({
+        items: items.map(({ id, quantity }) => ({ id, quantity })),
+        customer: { ...form, delivery_type: deliveryType, phone: normalizePhone(form.phone) },
+        locale: LOCALES.includes(lang) ? lang : 'fr',
       })
-      const body = await res.json().catch(() => ({}))
-      if (res.ok && body.checkout_url) {
+      if (ok && body.checkout_url) {
         window.location.assign(body.checkout_url)
         return // stay in "redirecting" state while the browser leaves
       }
-      if (res.ok && body.order_id) {
+      if (ok && body.order_id) {
         // Cash on delivery: the order is placed; no payment step.
         saveOrderSummary(body.order_id, { ...body.summary, payment_method: form.payment_method })
         navigate(`/checkout/success?order=${body.order_id}`)
