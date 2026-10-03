@@ -2,17 +2,25 @@ import { useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import ContactLinks from '../components/ContactLinks'
 import { useCart } from '../context/CartContext'
+import { t } from '../i18n'
+import { loadOrderSummary } from '../utils/orderSummary'
+import { formatPrice } from '../utils/product'
 
-// Chargily redirects here with ?order=<uuid>. The redirect only says where the
-// customer ended up; the webhook is what actually marks the order paid.
-function useOrderRef() {
+// Online payments: Chargily redirects here with ?order=<uuid>. The redirect
+// only says where the customer ended up; the webhook marks the order paid.
+// Cash on delivery: the checkout page navigates here itself after storing the
+// server's order summary (see utils/orderSummary).
+function useOrder() {
   const [params] = useSearchParams()
-  return params.get('order')?.slice(0, 8).toUpperCase() ?? null
+  const id = params.get('order')
+  return { id, ref: id?.slice(0, 8).toUpperCase() ?? null }
 }
 
 export function CheckoutSuccess() {
   const { clear } = useCart()
-  const ref = useOrderRef()
+  const { id, ref } = useOrder()
+  const summary = loadOrderSummary(id)
+  const cod = summary?.payment_method === 'cod'
 
   useEffect(() => {
     clear()
@@ -26,18 +34,55 @@ export function CheckoutSuccess() {
   return (
     <div className="page-message checkout-result">
       <SuccessIcon />
-      <h1>Thank you!</h1>
-      <p>
-        Your payment went through{ref && <> for order <strong dir="ltr">#{ref}</strong></>}. We’ll call you to arrange
-        delivery.
-      </p>
-      <Link to="/shop" className="btn">Continue shopping</Link>
+      <h1>{t(cod ? 'success.cod.title' : 'success.paid.title')}</h1>
+      {ref && <p className="order-ref">{t('success.order', { ref })}</p>}
+      <p>{t(cod ? 'success.cod.body' : 'success.paid.body')}</p>
+      {cod && <OrderSummary summary={summary} />}
+      <Link to="/shop" className="btn">{t('success.continue')}</Link>
     </div>
   )
 }
 
+function OrderSummary({ summary }) {
+  return (
+    <section className="result-summary" aria-labelledby="result-summary-title">
+      <h2 id="result-summary-title">{t('summary.title')}</h2>
+      <ul>
+        {summary.items.map((item) => (
+          <li key={item.id}>
+            <span>
+              {item.name}
+              {item.quantity > 1 && ` × ${item.quantity}`}
+              {item.size && <span className="muted"> · {t('summary.size', { size: item.size })}</span>}
+            </span>
+            <span>{formatPrice(item.price * item.quantity)}</span>
+          </li>
+        ))}
+      </ul>
+      <dl>
+        <div>
+          <dt>{t('summary.subtotal')}</dt>
+          <dd>{formatPrice(summary.subtotal)}</dd>
+        </div>
+        <div>
+          <dt>{t(`summary.delivery.${summary.delivery_type}`)}</dt>
+          <dd>{formatPrice(summary.delivery_price)}</dd>
+        </div>
+        <div className="result-summary-total">
+          <dt>{t('summary.total')}</dt>
+          <dd>{formatPrice(summary.total)}</dd>
+        </div>
+        <div>
+          <dt>{t('summary.payment')}</dt>
+          <dd>{t('payment.cod')}</dd>
+        </div>
+      </dl>
+    </section>
+  )
+}
+
 export function CheckoutFailed() {
-  const ref = useOrderRef()
+  const { ref } = useOrder()
   return (
     <div className="page-message checkout-result">
       <h1>Payment not completed</h1>

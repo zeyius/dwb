@@ -1,18 +1,21 @@
 import { cloneElement, useEffect, useId, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { getDeliveryRates } from '../api/deliveryRates'
 import { getProductsByIds } from '../api/products'
-import { ChevronUpIcon, TrashIcon } from '../components/Icons'
+import { CardIcon, CashIcon, CheckIcon, ChevronUpIcon, TrashIcon } from '../components/Icons'
 import { useCart } from '../context/CartContext'
 import algeria from '../data/algeria.json'
+import { t } from '../i18n'
 import {
   deliveryPrice,
   LOCALES,
   maxQuantity,
   normalizePhone,
   isValidPhone,
+  ONLINE_PAYMENT_METHODS,
   validateCustomer,
 } from '../utils/checkout'
+import { saveOrderSummary } from '../utils/orderSummary'
 import { formatPrice } from '../utils/product'
 
 // The form survives a trip to Chargily and back (e.g. a failed payment).
@@ -25,8 +28,14 @@ const EMPTY_FORM = {
   commune: '',
   address: '',
   delivery_type: 'home',
-  payment_method: 'edahabia',
+  payment_method: 'cod',
 }
+
+const PAYMENT_OPTIONS = [
+  { value: 'cod', icon: <CashIcon /> },
+  { value: 'edahabia', icon: <CardIcon /> },
+  { value: 'cib', icon: <CardIcon /> },
+]
 
 function loadForm() {
   try {
@@ -42,6 +51,7 @@ const FIELD_ORDER = ['name', 'phone', 'wilaya_code', 'commune', 'address', 'deli
 
 export default function Checkout() {
   const { items, remove, setQuantity } = useCart()
+  const navigate = useNavigate()
   const [form, setForm] = useState(loadForm)
   const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
@@ -96,7 +106,15 @@ export default function Checkout() {
     home: wilaya && rates.status === 'ready' ? deliveryPrice(rate, 'home') : undefined,
     desk: wilaya && rates.status === 'ready' ? deliveryPrice(rate, 'desk') : undefined,
   }
-  const delivery = prices[form.delivery_type]
+  // A type is offered when it has a price. If the chosen one isn't offered in
+  // this wilaya but the other is, use the other: no error, the unpriced card is
+  // just disabled. Derived, not stored, so picking a wilaya where the original
+  // choice is priced again goes back to it.
+  const offered = (type) => typeof prices[type] === 'number'
+  const otherType = form.delivery_type === 'home' ? 'desk' : 'home'
+  const deliveryType = !offered(form.delivery_type) && offered(otherType) ? otherType : form.delivery_type
+  const delivery = prices[deliveryType]
+  const noDelivery = prices.home === null && prices.desk === null
 
   const lines = items.map((item) => {
     const row = fresh?.get(item.id)
@@ -106,22 +124,14 @@ export default function Checkout() {
   const subtotal = lines.reduce((sum, l) => sum + l.price * l.quantity, 0)
   const total = subtotal + (delivery ?? 0)
   const count = lines.reduce((sum, l) => sum + l.quantity, 0)
-
-  // If the chosen delivery type isn't offered in the new wilaya, switch to one that is.
-  useEffect(() => {
-    if (prices[form.delivery_type] === null) {
-      const other = form.delivery_type === 'home' ? 'desk' : 'home'
-      if (prices[other] !== null && prices[other] !== undefined) update('delivery_type', other)
-    }
-  }, [prices.home, prices.desk]) // eslint-disable-line react-hooks/exhaustive-deps
+  const online = ONLINE_PAYMENT_METHODS.includes(form.payment_method)
 
   const allErrors = useMemo(() => {
     const e = validateCustomer(form, algeria)
-    if (!e.wilaya_code && rates.status === 'ready' && delivery === null) {
-      e.delivery_type = `${form.delivery_type === 'desk' ? 'Desk' : 'Home'} delivery isn’t available in ${wilaya?.name}.`
-    }
+    // Only when neither option has a price.
+    if (!e.wilaya_code && noDelivery) e.delivery_type = `Delivery isn’t available in ${wilaya?.name} yet.`
     return e
-  }, [form, rates.status, delivery, wilaya])
+  }, [form, noDelivery, wilaya])
 
   // Before the first submit, a field shows its error only once it's been left.
   function update(field, value) {
@@ -157,7 +167,7 @@ export default function Checkout() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: items.map(({ id, quantity }) => ({ id, quantity })),
-          customer: { ...form, phone: normalizePhone(form.phone) },
+          customer: { ...form, delivery_type: deliveryType, phone: normalizePhone(form.phone) },
           locale: LOCALES.includes(lang) ? lang : 'fr',
         }),
       })
@@ -165,6 +175,12 @@ export default function Checkout() {
       if (res.ok && body.checkout_url) {
         window.location.assign(body.checkout_url)
         return // stay in "redirecting" state while the browser leaves
+      }
+      if (res.ok && body.order_id) {
+        // Cash on delivery: the order is placed; no payment step.
+        saveOrderSummary(body.order_id, { ...body.summary, payment_method: form.payment_method })
+        navigate(`/checkout/success?order=${body.order_id}`)
+        return
       }
       if (body.unavailable?.length) {
         const names = items.filter((i) => body.unavailable.includes(i.id)).map((i) => i.name)
@@ -276,7 +292,7 @@ export default function Checkout() {
           <ChoiceGroup
             id="delivery_type"
             label="Delivery type"
-            value={form.delivery_type}
+            value={deliveryType}
             onChange={(v) => update('delivery_type', v)}
             error={shown.delivery_type}
             options={[
@@ -295,20 +311,13 @@ export default function Checkout() {
         </fieldset>
 
         <fieldset className="checkout-section">
-          <legend>Payment</legend>
-          <ChoiceGroup
-            id="payment_method"
-            label="Payment method"
-            hideLabel
+          <legend>{t('payment.title')}</legend>
+          <PaymentMethods
             value={form.payment_method}
             onChange={(v) => update('payment_method', v)}
             error={shown.payment_method}
-            options={[
-              { value: 'edahabia', label: 'Edahabia', note: 'Algérie Poste card' },
-              { value: 'cib', label: 'CIB', note: 'Bank card' },
-            ]}
           />
-          <p className="muted checkout-secure">You’ll be redirected to Chargily Pay to pay securely.</p>
+          <p className="muted checkout-secure">{t(online ? 'payment.online.info' : 'payment.cod.info')}</p>
         </fieldset>
       </div>
 
@@ -367,7 +376,9 @@ export default function Checkout() {
           </dl>
         </div>
         <button type="submit" className="btn btn-block pay-btn" disabled={submitting} aria-live="polite">
-          {submitting ? 'Redirecting to payment…' : `Pay now · ${formatPrice(total)}`}
+          {submitting
+            ? t(online ? 'button.redirecting' : 'button.placing')
+            : `${t(online ? 'button.pay' : 'button.confirm')} · ${formatPrice(total)}`}
         </button>
       </div>
     </form>
@@ -395,13 +406,21 @@ function Field({ id, label, hint, error, children }) {
   )
 }
 
-// Radio cards. The first enabled option carries the id so error focus lands on it.
-function ChoiceGroup({ id, label, hideLabel, value, onChange, options, error }) {
+// Radio cards. The first enabled option carries the id so error focus lands on
+// it; with every option disabled, the group itself takes it instead.
+function ChoiceGroup({ id, label, value, onChange, options, error }) {
   const name = useId()
   const firstEnabled = options.find((o) => !o.disabled)?.value
   return (
-    <div className="field" role="radiogroup" aria-labelledby={`${name}-label`} aria-describedby={error ? `checkout-${id}-error` : undefined}>
-      <span id={`${name}-label`} className={hideLabel ? 'visually-hidden' : 'field-label'}>
+    <div
+      className="field"
+      role="radiogroup"
+      aria-labelledby={`${name}-label`}
+      aria-describedby={error ? `checkout-${id}-error` : undefined}
+      id={firstEnabled === undefined ? `checkout-${id}` : undefined}
+      tabIndex={firstEnabled === undefined ? -1 : undefined}
+    >
+      <span id={`${name}-label`} className="field-label">
         {label}
       </span>
       <div className="choices">
@@ -426,6 +445,42 @@ function ChoiceGroup({ id, label, hideLabel, value, onChange, options, error }) 
       </div>
       {error && (
         <p className="field-error" id={`checkout-${id}-error`}>
+          {error}
+        </p>
+      )}
+    </div>
+  )
+}
+
+// Radio cards with an icon and a check mark on the selected one. Native radios
+// (visually hidden) keep arrow-key navigation and screen reader semantics.
+function PaymentMethods({ value, onChange, error }) {
+  const name = useId()
+  return (
+    <div className="field" role="radiogroup" aria-label={t('payment.title')} aria-describedby={error ? 'checkout-payment_method-error' : undefined}>
+      <div className="pay-methods">
+        {PAYMENT_OPTIONS.map((o, i) => (
+          <label key={o.value} className={value === o.value ? 'pay-method selected' : 'pay-method'}>
+            <input
+              type="radio"
+              className="visually-hidden"
+              name={name}
+              value={o.value}
+              checked={value === o.value}
+              onChange={() => onChange(o.value)}
+              id={i === 0 ? 'checkout-payment_method' : undefined}
+            />
+            <span className="pay-method-icon">{o.icon}</span>
+            <span className="pay-method-text">
+              <span className="pay-method-label">{t(`payment.${o.value}`)}</span>
+              <span className="muted">{t(`payment.${o.value}.note`)}</span>
+            </span>
+            <span className="pay-method-check">{value === o.value && <CheckIcon />}</span>
+          </label>
+        ))}
+      </div>
+      {error && (
+        <p className="field-error" id="checkout-payment_method-error">
           {error}
         </p>
       )}

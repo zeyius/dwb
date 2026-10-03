@@ -3,7 +3,9 @@
 // Plain JS with no imports: it runs in both environments.
 
 export const DELIVERY_TYPES = ['home', 'desk']
-export const PAYMENT_METHODS = ['edahabia', 'cib']
+export const PAYMENT_METHODS = ['cod', 'edahabia', 'cib']
+// Paid up front through Chargily; 'cod' is cash on delivery.
+export const ONLINE_PAYMENT_METHODS = ['edahabia', 'cib']
 export const LOCALES = ['ar', 'fr', 'en']
 
 // "0550 12 34 56", "+213 550123456", "+213 0550…", "00213550123456" -> "0550123456".
@@ -20,7 +22,8 @@ export const isValidPhone = (input) => /^0[567]\d{8}$/.test(normalizePhone(input
 export const maxQuantity = () => 1
 
 // Delivery price for a delivery_rates row, or null when that option isn't
-// offered there (no row, inactive, or no price set).
+// offered there: its price is null (or there's no row for the wilaya).
+// is_active = false switches a whole wilaya off.
 export function deliveryPrice(rate, type) {
   if (!rate || rate.is_active === false) return null
   const price = type === 'desk' ? rate.desk_price : rate.home_price

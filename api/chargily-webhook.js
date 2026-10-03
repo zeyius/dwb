@@ -34,6 +34,9 @@ export const POST = handle(async (request) => {
   if (!paymentStatus) return json({ received: true, ignored: event.type })
 
   const checkout = event.data ?? {}
+  // Only orders that went through Chargily have a checkout id; without one in
+  // the event there's nothing to match (and COD orders can never be hit).
+  if (typeof checkout.id !== 'string' || !checkout.id) return json({ received: true, ignored: 'no checkout id' })
   const db = supabaseAdmin()
 
   // Match on the checkout id we stored; metadata.order_id narrows it further.

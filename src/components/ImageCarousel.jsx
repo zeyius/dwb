@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 
-// Swipeable scroll-snap carousel with position dots. From tablet up,
-// thumbnails are also shown and jump to their slide.
+// Swipeable scroll-snap carousel with position dots below it. From tablet up,
+// thumbnails are also shown and jump to their slide. One image: neither.
 export default function ImageCarousel({ images, alt, children }) {
   const track = useRef(null)
   const [active, setActive] = useState(0)
@@ -42,14 +42,14 @@ export default function ImageCarousel({ images, alt, children }) {
           ))}
         </div>
         {children}
-        {multiple && (
-          <div className="carousel-dots" aria-hidden="true">
-            {images.map((src, i) => (
-              <span key={src + i} className={i === active ? 'dot active' : 'dot'} />
-            ))}
-          </div>
-        )}
       </div>
+      {multiple && (
+        <div className="carousel-dots" aria-hidden="true">
+          {images.map((src, i) => (
+            <span key={src + i} className={i === active ? 'dot active' : 'dot'} />
+          ))}
+        </div>
+      )}
       {multiple && (
         <div className="thumbs">
           {images.map((src, i) => (

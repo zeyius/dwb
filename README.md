@@ -13,14 +13,16 @@ a `VITE_` prefix: those are bundled into the public site.
 ## Database setup (once)
 
 Run `scripts/checkout-setup.sql` in the Supabase SQL editor. It lets the
-checkout page read `delivery_rates` and adds an inactive row per wilaya. Then
-set real prices and activate them:
+checkout page read `delivery_rates` and adds a row for any missing wilaya
+(codes 1-58, matching `src/data/algeria.json`). Then set prices:
 
 ```sql
-update delivery_rates set home_price = 600, desk_price = 400, is_active = true where wilaya_code = 16;
+update delivery_rates set home_price = 600, desk_price = 400 where wilaya_code = 16;
 ```
 
-A wilaya with no active row, or a type with no price, shows as unavailable.
+An option is offered when its price is not null. If only one is priced, the
+checkout selects it automatically; if neither is, the wilaya shows as
+unavailable. `is_active = false` turns a whole wilaya off.
 
 ## Local development
 

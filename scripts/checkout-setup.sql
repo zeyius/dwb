@@ -17,15 +17,13 @@ begin
   end if;
 end $$;
 
--- 2. One row per wilaya (69, 2025 division), INACTIVE with price 0 so nothing
---    is orderable until you set real prices. Existing rows are left alone.
---    Then e.g.:
---      update delivery_rates set home_price = 600, desk_price = 400, is_active = true
---      where wilaya_code = 16;
---    A wilaya without desk pickup: set desk_price = null (if the column allows
---    it) — the checkout then shows desk as unavailable there.
-insert into public.delivery_rates (wilaya_code, wilaya_name, home_price, desk_price, is_active)
-select v.code, v.name, 0, 0, false
+-- 2. One row per wilaya, codes 1-58 (same codes as src/data/algeria.json),
+--    for any wilaya that doesn't have one yet. Prices start NULL, which the
+--    checkout treats as "not offered". Existing rows are left alone. Then e.g.:
+--      update delivery_rates set home_price = 600, desk_price = 400 where wilaya_code = 16;
+--    Home only / desk only: leave the other price NULL.
+insert into public.delivery_rates (wilaya_code, wilaya_name)
+select v.code, v.name
 from (values
   (1, 'Adrar'),
   (2, 'Chlef'),
@@ -84,18 +82,7 @@ from (values
   (55, 'Touggourt'),
   (56, 'Djanet'),
   (57, 'El M''Ghair'),
-  (58, 'El Meniaa'),
-  (59, 'Aflou'),
-  (60, 'El Abiodh Sidi Cheikh'),
-  (61, 'El Aricha'),
-  (62, 'El Kantara'),
-  (63, 'Barika'),
-  (64, 'Bou Saada'),
-  (65, 'Bir El Ater'),
-  (66, 'Ksar El Boukhari'),
-  (67, 'Ksar Chellala'),
-  (68, 'Ain Oussara'),
-  (69, 'Messaad')
+  (58, 'El Meniaa')
 ) as v(code, name)
 where not exists (select 1 from public.delivery_rates r where r.wilaya_code = v.code);
 

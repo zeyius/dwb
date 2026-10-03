@@ -55,3 +55,24 @@ export const TrashIcon = () => (
     <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
   </svg>
 )
+
+export const CashIcon = () => (
+  <svg {...base}>
+    <rect x="2.5" y="6" width="19" height="12" rx="2" />
+    <circle cx="12" cy="12" r="2.5" />
+    <path d="M6 9.5v5M18 9.5v5" />
+  </svg>
+)
+
+export const CardIcon = () => (
+  <svg {...base}>
+    <rect x="2.5" y="5" width="19" height="14" rx="2" />
+    <path d="M2.5 10h19M6.5 15h4" />
+  </svg>
+)
+
+export const CheckIcon = () => (
+  <svg {...base} width={20} height={20} strokeWidth={2.4}>
+    <path d="m5 12.5 4.5 4.5L19 7.5" />
+  </svg>
+)

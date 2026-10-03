@@ -4,10 +4,20 @@
 //
 // Prices are never taken from the client: products and the delivery rate are
 // re-read from Supabase and the total recomputed here. The order is stored as
-// unpaid, a Chargily checkout is created for that exact total, and its URL is
-// returned for the browser to redirect to. The webhook marks it paid.
+// pending / unpaid, then:
+// - edahabia / cib: a Chargily checkout is created for that exact total and
+//   its URL returned for the browser to redirect to. The webhook marks it paid.
+// - cod (cash on delivery): nothing else happens; returns { order_id, summary }.
+//   Products are NOT marked sold: the shop confirms COD orders by phone first.
 import algeria from '../src/data/algeria.json' with { type: 'json' }
-import { deliveryPrice, LOCALES, maxQuantity, normalizePhone, validateCustomer } from '../src/utils/checkout.js'
+import {
+  deliveryPrice,
+  LOCALES,
+  maxQuantity,
+  normalizePhone,
+  ONLINE_PAYMENT_METHODS,
+  validateCustomer,
+} from '../src/utils/checkout.js'
 import { env, handle, HttpError, json, supabaseAdmin } from './_lib/server.js'
 
 
@@ -61,7 +71,6 @@ export const POST = handle(async (request) => {
   const subtotal = lines.reduce((sum, l) => sum + l.price * l.quantity, 0)
   const total = subtotal + delivery
 
-  // status is left to the column default; only the payment side is set here.
   const { data: order, error: orderError } = await db
     .from('orders')
     .insert({
@@ -77,10 +86,17 @@ export const POST = handle(async (request) => {
       items: lines,
       payment_method: customer.payment_method,
       payment_status: 'unpaid',
+      status: 'pending',
     })
     .select('id')
     .single()
   if (orderError) throw orderError
+
+  if (!ONLINE_PAYMENT_METHODS.includes(customer.payment_method)) {
+    // Server-computed figures for the confirmation page (it can't read orders).
+    const summary = { items: lines, subtotal, delivery_type: customer.delivery_type, delivery_price: delivery, total }
+    return json({ order_id: order.id, summary })
+  }
 
   const site = env('SITE_URL').replace(/\/+$/, '')
   let checkout

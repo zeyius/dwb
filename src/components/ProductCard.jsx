@@ -4,16 +4,20 @@ import ProductBadge from './ProductBadge'
 
 // `priority` is for the first row: lazy-loading above-the-fold images delays LCP.
 export default function ProductCard({ product, priority = false }) {
+  const [cover, alt] = productImages(product)
   return (
     <Link to={`/shop/${product.id}`} className={product.is_sold ? 'card sold' : 'card'}>
       <div className="card-media">
         <img
-          src={productImages(product)[0]}
+          src={cover}
           alt=""
           loading={priority ? 'eager' : 'lazy'}
           fetchPriority={priority ? 'high' : 'auto'}
           decoding="async"
         />
+        {/* Second photo, crossfaded in on hover. Hidden (display: none) on touch
+            screens, where a lazy image that's never displayed is never fetched. */}
+        {alt && <img src={alt} alt="" className="card-media-alt" loading="lazy" decoding="async" />}
         <ProductBadge product={product} />
       </div>
       <div className="card-body">
