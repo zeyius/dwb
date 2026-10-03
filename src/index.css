@@ -3,15 +3,21 @@
      backdrop must be --text (6:1 at worst); --muted is only for panels. */
   --page: #1c1d21;
   --surface: rgba(20, 20, 20, 0.85);
+  --surface-solid: #141414;
   --text: #ffffff;
   --muted: #a3a3a3;
   --border: rgba(255, 255, 255, 0.14);
+  --skeleton: rgba(255, 255, 255, 0.08);
   --accent: #ffffff;
   --accent-text: #000000;
   --badge: #ffffff;
   --badge-text: #000000;
   --radius: 0;
   --gutter: 16px;
+  --header-h: 56px;
+  --tap: 44px;
+  --press: scale(0.97);
+  --fade: 180ms;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color: var(--text);
   /* On the root (canvas), not body: a body background would paint over the
@@ -19,6 +25,10 @@
   background: var(--page);
   color-scheme: dark;
   -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  /* No double-tap-to-zoom wait on taps. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 *,
@@ -29,6 +39,11 @@
 
 body {
   margin: 0;
+}
+
+/* Lock page scroll behind the open cart drawer. */
+html:has(.drawer[open]) {
+  overflow: hidden;
 }
 
 /* Site-wide backdrop: logo image, then a dark overlay. Fixed layers rather than
@@ -44,7 +59,7 @@ body::after {
 
 /* Mobile: contain so the circle isn't cropped on a tall screen. */
 body::before {
-  background: var(--page) url('/bg-logo.jpg') center / contain no-repeat;
+  background: var(--page) url('/bg-logo.webp') center / contain no-repeat;
 }
 
 body::after {
@@ -62,8 +77,13 @@ a {
 }
 
 h1,
-h3 {
+h2 {
   margin: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
 }
 
 .muted {
@@ -71,19 +91,59 @@ h3 {
   font-size: 0.875rem;
 }
 
+/* Press feedback on everything tappable; works on touch, unlike :hover. */
+.btn,
+.icon-btn,
+.card,
+.category,
+.thumb,
+.link-btn,
+.back-link,
+.contact-links a {
+  transition: transform 0.1s ease-out;
+}
+
+.btn:not(:disabled):active,
+.icon-btn:active,
+.card:active,
+.category:active,
+.thumb:active,
+.link-btn:active,
+.back-link:active,
+.contact-links a:active {
+  transform: var(--press);
+}
+
 /* Layout */
 .app {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
 
 .main {
   flex: 1;
+  /* At least a screen tall so the footer starts below the fold and isn't
+     pushed around while data loads (CLS). */
+  min-height: calc(100vh - var(--header-h));
+  min-height: calc(100dvh - var(--header-h));
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   padding: var(--gutter);
+}
+
+/* Page transition: Layout re-keys <main> per path. Opacity only, since a
+   transform would break position: sticky/fixed inside. */
+.page {
+  animation: fade-in var(--fade) ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
 }
 
 /* Header */
@@ -94,23 +154,37 @@ h3 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px var(--gutter);
-  padding-block: 10px;
+  height: var(--header-h);
+  padding-inline: max(var(--gutter), env(safe-area-inset-left)) max(var(--gutter), env(safe-area-inset-right));
   background: var(--surface);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
 }
 
+/* 44px tap area around a 40px disc. */
 .logo {
-  display: block;
-  width: 44px;
-  height: 44px;
+  display: grid;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  margin-left: -2px;
+  transition: transform 0.1s ease-out;
+}
+
+.logo:active {
+  transform: var(--press);
+}
+
+.logo-disc {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   overflow: hidden;
   border: 1.5px solid var(--text);
 }
 
-/* The PNG has a grey margin around its white disc; zoom to crop it out. */
+/* The image has a grey margin around its white disc; zoom to crop it out. */
 .logo img {
   width: 100%;
   height: 100%;
@@ -121,25 +195,27 @@ h3 {
 .header-actions {
   display: flex;
   gap: 4px;
+  margin-right: -6px; /* optically align the icon, not its tap area, with the gutter */
 }
 
 .icon-btn {
   position: relative;
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: var(--tap);
+  height: var(--tap);
+  padding: 0;
+  border: 0;
   border-radius: 50%;
-}
-
-.icon-btn:hover {
-  background: var(--border);
+  background: none;
+  color: inherit;
+  cursor: pointer;
 }
 
 .cart-count {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 3px;
+  right: 3px;
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
@@ -152,6 +228,16 @@ h3 {
   text-align: center;
 }
 
+.cart-count.bump {
+  animation: bump 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+@keyframes bump {
+  40% {
+    transform: scale(1.45);
+  }
+}
+
 /* Shop */
 .shop {
   display: flex;
@@ -159,10 +245,22 @@ h3 {
   gap: var(--gutter);
 }
 
+/* Mobile: full-bleed pill bar pinned under the header. */
 .categories {
-  margin: 0 calc(-1 * var(--gutter));
+  position: sticky;
+  top: var(--header-h);
+  z-index: 9;
+  margin: calc(-1 * var(--gutter)) calc(-1 * var(--gutter)) 0;
+  padding-block: 6px;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: var(--gutter);
   scrollbar-width: none;
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
 }
 
 .categories::-webkit-scrollbar {
@@ -172,14 +270,21 @@ h3 {
 .categories ul {
   display: flex;
   gap: 8px;
+  width: max-content;
   margin: 0;
   padding: 0 var(--gutter);
   list-style: none;
 }
 
+.categories li {
+  scroll-snap-align: start;
+}
+
 .category {
-  display: block;
-  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: 0 16px;
   border: 1px solid var(--border);
   border-radius: 999px;
   font-size: 0.75rem;
@@ -205,58 +310,53 @@ h3 {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
+  gap: 12px;
   margin-bottom: var(--gutter);
 }
 
 /* Sits on the bare backdrop, so full white rather than --muted. */
 .shop-heading .muted {
+  flex: none;
   color: var(--text);
 }
 
 .shop-heading h1 {
+  min-width: 0;
   font-size: 1.75rem;
   font-weight: 900;
   letter-spacing: -0.02em;
   text-transform: uppercase;
+  overflow-wrap: anywhere;
 }
 
+/* minmax(0, …) so a long unbroken name can't widen a column past the screen. */
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .card {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   background: var(--surface);
   border: 1px solid var(--border);
-  transition: border-color 0.15s;
-}
-
-.card:hover {
-  border-color: var(--text);
 }
 
 .card-media,
-.detail-media {
+.carousel {
   position: relative;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 5;
   overflow: hidden;
   border-radius: var(--radius);
   background: var(--border);
 }
 
-.card-media img,
-.detail-media img {
+.card-media img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s;
-}
-
-.card:hover .card-media img {
-  transform: scale(1.03);
 }
 
 .badge {
@@ -276,11 +376,19 @@ h3 {
   flex-direction: column;
   gap: 2px;
   padding: 10px 12px 12px;
+  line-height: 1.3;
 }
 
 .card-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  /* Always two lines tall, so cards (and their skeletons) share one height. */
+  min-height: 2.6em;
   font-size: 0.9375rem;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .card-size {
@@ -294,10 +402,59 @@ h3 {
   font-weight: 700;
 }
 
+/* Skeletons: same boxes as the real content, so nothing moves on load. */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--skeleton);
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+  transform: translateX(-100%);
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton-line {
+  display: block;
+  height: 1em;
+  margin-block: 0.15em;
+}
+
+/* Heights match .card-name (2 lines) / .card-size / .card-price at line-height 1.3. */
+.card-skeleton .skeleton-line:nth-child(1) {
+  height: 2.4375rem;
+  margin: 0;
+}
+.card-skeleton .skeleton-line:nth-child(2) {
+  height: 1.05rem;
+  margin: 0;
+}
+.card-skeleton .skeleton-line:nth-child(3) {
+  height: 1.3rem;
+  margin: 0;
+}
+
 .show-more {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   margin-top: 28px;
+}
+
+.show-more p {
+  margin: 0;
+  color: var(--text);
 }
 
 .empty {
@@ -311,7 +468,7 @@ h3 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 46px;
+  min-height: 48px;
   padding: 0 24px;
   border: 1px solid var(--accent);
   border-radius: var(--radius);
@@ -323,17 +480,7 @@ h3 {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-
-.btn:not(:disabled):hover {
-  background: var(--accent-text);
-  color: var(--accent);
-}
-
-.btn-outline:not(:disabled):hover {
-  background: var(--accent);
-  color: var(--accent-text);
+  transition: transform 0.1s ease-out, background 0.15s, color 0.15s;
 }
 
 .btn:disabled {
@@ -351,7 +498,8 @@ h3 {
 }
 
 .link-btn {
-  padding: 4px 0;
+  min-height: var(--tap);
+  padding: 0 4px;
   border: 0;
   background: none;
   color: var(--muted);
@@ -361,30 +509,99 @@ h3 {
   cursor: pointer;
 }
 
-/* Product detail */
-.detail,
-.cart {
-  padding: var(--gutter);
+/* Product detail. Mobile: edge-to-edge carousel, text below, buy bar pinned
+   to the bottom of the screen. */
+.detail {
+  margin: calc(-1 * var(--gutter)) calc(-1 * var(--gutter)) 0;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 .back-link {
-  display: inline-block;
-  margin-bottom: var(--gutter);
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding-inline: var(--gutter);
   color: var(--muted);
   font-size: 0.875rem;
 }
 
 .detail-layout {
   display: grid;
-  gap: 20px;
+}
+
+.gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.carousel-track {
+  display: flex;
+  height: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-track:focus-visible {
+  outline-offset: -3px;
+}
+
+.carousel-slide {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.carousel-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.carousel-dots {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  display: flex;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.5);
+  transition: width 0.2s, background 0.2s;
+}
+
+.dot.active {
+  width: 16px;
+  background: #fff;
+}
+
+/* Thumbnails are a pointer affordance; on touch, swipe + dots do the job. */
+.thumbs {
+  display: none;
 }
 
 .detail-info {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  padding: var(--gutter) var(--gutter) 0;
 }
 
 .detail-info h1 {
@@ -393,6 +610,12 @@ h3 {
   letter-spacing: -0.02em;
   text-transform: uppercase;
   line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.detail-size {
+  margin: 0;
+  color: var(--muted);
 }
 
 .detail-price {
@@ -405,7 +628,7 @@ h3 {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 6px 16px;
-  margin: 0;
+  margin: 8px 0 0;
 }
 
 .detail-meta dt {
@@ -416,7 +639,36 @@ h3 {
   margin: 0;
 }
 
-/* Cart */
+.detail-description {
+  margin: 8px 0 0;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.buy-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 16px calc(-1 * var(--gutter)) 0;
+  padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom));
+  background: var(--surface-solid);
+  border-top: 1px solid var(--border);
+}
+
+.buy-bar-price {
+  flex: none;
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.buy-bar .btn {
+  flex: 1;
+}
+
+/* Cart (page and drawer) */
 .cart h1,
 .page-message h1 {
   font-weight: 900;
@@ -424,8 +676,19 @@ h3 {
   text-transform: uppercase;
 }
 
+.cart {
+  padding: var(--gutter);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
 .cart h1 {
-  margin-bottom: var(--gutter);
+  margin-bottom: 8px;
+}
+
+.cart-empty {
+  margin: 0;
+  font-weight: 700;
 }
 
 .cart-list {
@@ -436,15 +699,15 @@ h3 {
 
 .cart-item {
   display: grid;
-  grid-template-columns: 72px 1fr auto;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
   gap: 12px;
-  align-items: start;
+  align-items: center;
   padding: 12px 0;
   border-bottom: 1px solid var(--border);
 }
 
 .cart-thumb {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 5;
   overflow: hidden;
   background: var(--border);
 }
@@ -459,18 +722,20 @@ h3 {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .cart-item-name {
   font-weight: 500;
+  overflow-wrap: anywhere;
 }
 
 .cart-summary {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  margin-top: 20px;
+  gap: 4px;
+  margin-top: 16px;
 }
 
 .cart-total {
@@ -489,13 +754,103 @@ h3 {
   text-align: center;
 }
 
-/* Footer */
+/* Cart drawer: bottom sheet on mobile. */
+.drawer {
+  inset: auto 0 0;
+  width: 100%;
+  max-width: none;
+  max-height: 85vh;
+  max-height: 85dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 16px 16px 0 0;
+  background: var(--surface-solid);
+  color: var(--text);
+  overflow: hidden;
+  animation: sheet-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.drawer.closing {
+  animation: sheet-out 0.2s ease-in forwards;
+}
+
+.drawer::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+  animation: fade-in 0.22s ease-out;
+}
+
+.drawer.closing::backdrop {
+  animation: fade-out 0.2s ease-in forwards;
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes sheet-out {
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+.drawer-panel {
+  display: flex;
+  flex-direction: column;
+  max-height: inherit;
+}
+
+.drawer-handle {
+  flex: none;
+  width: 36px;
+  height: 4px;
+  margin: 8px auto 0;
+  border-radius: 2px;
+  background: var(--border);
+}
+
+.drawer-header {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px 4px var(--gutter);
+  border-bottom: 1px solid var(--border);
+}
+
+.drawer-header h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.drawer-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 var(--gutter) calc(var(--gutter) + env(safe-area-inset-bottom));
+}
+
+.drawer .page-message {
+  padding: 40px 0 24px;
+}
+
+/* Footer: stacked and centred at every size. */
 .footer {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 14px;
-  padding: 40px var(--gutter) 28px;
+  padding: 40px var(--gutter) calc(28px + env(safe-area-inset-bottom));
   background: #000;
   color: #fff;
   text-align: center;
@@ -517,91 +872,16 @@ h3 {
   text-transform: uppercase;
 }
 
-.footer-contact {
-  justify-content: center;
+.footer .footer-contact {
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
 }
 
 .footer .footer-copy {
   margin-top: 10px;
   color: #8a8a8a;
   font-size: 0.75rem;
-}
-
-/* Tablet and up */
-@media (min-width: 768px) {
-  :root {
-    --gutter: 24px;
-  }
-
-  .shop {
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 40px;
-  }
-
-  body::before {
-    background-size: cover;
-  }
-
-  .categories {
-    position: sticky;
-    top: 88px;
-    flex: 0 0 180px;
-    margin: 0;
-    padding: 8px;
-    overflow: visible;
-    background: var(--surface);
-    border: 1px solid var(--border);
-  }
-
-  .categories ul {
-    flex-direction: column;
-    gap: 2px;
-    padding: 0;
-  }
-
-  .category,
-  .category.active {
-    padding: 8px 12px;
-    border: 0;
-    border-radius: 0;
-    background: none;
-    color: var(--muted);
-  }
-
-  .category:hover {
-    color: var(--text);
-  }
-
-  .category.active {
-    color: var(--text);
-    box-shadow: inset 3px 0 0 var(--text);
-  }
-
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 28px 20px;
-  }
-
-  .detail-layout {
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-  }
-
-  .cart {
-    max-width: 640px;
-    margin: 0 auto;
-  }
-
-  .cart-summary .btn {
-    max-width: 320px;
-  }
-}
-
-@media (min-width: 1100px) {
-  .grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
 }
 
 /* Supabase-backed states */
@@ -634,7 +914,7 @@ h3 {
 }
 
 .sold .card-media img,
-.sold .detail-media img {
+.sold .carousel-slide img {
   filter: grayscale(1);
   opacity: 0.5;
 }
@@ -648,59 +928,11 @@ h3 {
   text-decoration: line-through;
 }
 
-.show-more {
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.show-more p {
-  margin: 0;
-  color: var(--text);
-}
-
-.gallery {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.thumbs {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-}
-
-.thumb {
-  flex: 0 0 64px;
-  aspect-ratio: 3 / 4;
-  padding: 0;
-  border: 1.5px solid transparent;
-  background: var(--border);
-  cursor: pointer;
-}
-
-.thumb.active {
-  border-color: var(--text);
-}
-
-.thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.detail-description {
-  margin: 0;
-  line-height: 1.6;
-  white-space: pre-line;
-}
-
 /* Contact links (footer, order info) */
 .contact-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 20px;
+  gap: 0 20px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -710,11 +942,8 @@ h3 {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-height: var(--tap);
   overflow-wrap: anywhere;
-}
-
-.contact-links a:hover {
-  text-decoration: underline;
 }
 
 .contact-links svg {
@@ -746,9 +975,686 @@ h3 {
 
 .order-contact .contact-links {
   flex-direction: column;
-  margin-top: 4px;
 }
 
-.cart .order-contact {
+.cart .order-contact,
+.drawer .order-contact {
   margin-top: 24px;
+}
+
+/* Checkout. Logical properties throughout (inline/block, start/end) so the
+   layout mirrors correctly under dir="rtl". */
+.checkout {
+  --danger: #ff8a80;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gutter);
+}
+
+.checkout h1 {
+  font-size: 1.75rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.checkout-banner {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--danger);
+  border-inline-start-width: 4px;
+  background: var(--surface-solid);
+}
+
+.checkout-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gutter);
+  min-width: 0;
+}
+
+.checkout-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  margin: 0;
+  padding: var(--gutter);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.checkout-section legend {
+  float: inline-start; /* keeps the legend inside the panel's padding */
+  width: 100%;
+  padding: 0;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.field label,
+.field-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-solid);
+  color: var(--text);
+  /* 16px: anything smaller makes iOS Safari zoom in on focus. */
+  font: inherit;
+  font-size: 1rem;
+}
+
+.field input::placeholder {
+  color: #8a8a8a;
+}
+
+.field select {
+  appearance: none;
+  padding-inline-end: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+
+[dir='rtl'] .field select {
+  background-position: left 14px center;
+}
+
+.field select:disabled {
+  opacity: 0.5;
+}
+
+.field [aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+.field-hint,
+.field-error {
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+.field-hint {
+  color: var(--muted);
+}
+
+.field-error {
+  color: var(--danger);
+}
+
+.choices {
+  display: grid;
+  gap: 8px;
+}
+
+.field .choice {
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.choice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  background: var(--surface-solid);
+  cursor: pointer;
+  transition: transform 0.1s ease-out, border-color 0.15s;
+}
+
+.choice:active:not(.disabled) {
+  transform: var(--press);
+}
+
+.choice.selected {
+  border-color: var(--text);
+}
+
+.choice.disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.choice:has(input:focus-visible) {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+.choice input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.choice-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.choice-label {
+  font-weight: 700;
+}
+
+.choice-text .muted {
+  font-size: 0.8125rem;
+}
+
+.choice-price {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badge-inline {
+  display: inline-block;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.checkout-secure {
+  margin: 0;
+}
+
+/* Mobile: summary + pay button pinned to the bottom of the screen; the
+   summary opens upward from its toggle. */
+.checkout-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  margin-inline: calc(-1 * var(--gutter));
+  margin-bottom: calc(-1 * var(--gutter));
+  padding: 0 var(--gutter) calc(12px + env(safe-area-inset-bottom));
+  background: var(--surface-solid);
+  border-top: 1px solid var(--border);
+}
+
+.summary-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.chevron {
+  transition: transform 0.2s;
+}
+
+.checkout-bar.open .chevron {
+  transform: rotate(180deg);
+}
+
+.summary-details {
+  display: none;
+  max-height: 50vh;
+  max-height: 50dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 12px;
+}
+
+.checkout-bar.open .summary-details {
+  display: block;
+  animation: fade-in var(--fade) ease-out;
+}
+
+.summary-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.summary-lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.summary-line {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.summary-thumb {
+  width: 48px;
+  height: 60px;
+  object-fit: cover;
+  background: var(--border);
+}
+
+.summary-line.sold .summary-thumb {
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+.summary-line-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.summary-line-name {
+  overflow-wrap: anywhere;
+}
+
+.summary-line-end {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  font-weight: 700;
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+}
+
+.stepper button {
+  display: grid;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 1.125rem;
+  cursor: pointer;
+  transition: transform 0.1s ease-out;
+}
+
+.stepper button:active:not(:disabled) {
+  transform: var(--press);
+}
+
+.stepper button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.stepper span {
+  min-width: 20px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.summary-totals {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0 0;
+}
+
+.summary-totals div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.summary-totals dd {
+  margin: 0;
+}
+
+.summary-total {
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.pay-btn {
+  min-height: 48px;
+}
+
+.cart-summary .btn {
+  margin-top: 12px;
+}
+
+.checkout-result p {
+  max-width: 34em;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.checkout-result-help {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 16px;
+}
+
+.checkout-result-help .contact-links {
+  flex-direction: column;
+  align-items: center;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Wide: form left, summary as a sticky side panel that's always open. */
+@media (min-width: 900px) {
+  .checkout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    align-items: start;
+    column-gap: 32px;
+  }
+
+  .checkout h1,
+  .checkout-banner {
+    grid-column: 1 / -1;
+  }
+
+  .checkout-bar {
+    position: sticky;
+    top: calc(var(--header-h) + 24px);
+    bottom: auto;
+    gap: 12px;
+    margin: 0;
+    padding: var(--gutter);
+    border: 1px solid var(--border);
+  }
+
+  .summary-toggle {
+    display: none;
+  }
+
+  .summary-details,
+  .checkout-bar.open .summary-details {
+    display: block;
+    max-height: none;
+    overflow: visible;
+    padding: 0;
+    animation: none;
+  }
+
+  .summary-title {
+    position: static;
+    width: auto;
+    height: auto;
+    clip-path: none;
+    margin: 0 0 4px;
+    font-size: 0.8125rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+}
+
+/* Hover only where there's a real pointer, so taps don't leave sticky states. */
+@media (hover: hover) {
+  .icon-btn:hover {
+    background: var(--border);
+  }
+
+  .card {
+    transition: transform 0.1s ease-out, border-color 0.15s;
+  }
+
+  .card:hover {
+    border-color: var(--text);
+  }
+
+  .card-media img {
+    transition: transform 0.3s;
+  }
+
+  .card:hover .card-media img {
+    transform: scale(1.03);
+  }
+
+  .btn:not(:disabled):hover {
+    background: var(--accent-text);
+    color: var(--accent);
+  }
+
+  .btn-outline:not(:disabled):hover {
+    background: var(--accent);
+    color: var(--accent-text);
+  }
+
+  .contact-links a:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+  :root {
+    --gutter: 24px;
+  }
+
+  body::before {
+    background-size: cover;
+  }
+
+  .shop {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 40px;
+  }
+
+  .categories {
+    top: calc(var(--header-h) + 24px);
+    flex: 0 0 180px;
+    margin: 0;
+    padding: 8px;
+    overflow: visible;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border: 1px solid var(--border);
+  }
+
+  .categories ul {
+    flex-direction: column;
+    gap: 2px;
+    width: auto;
+    padding: 0;
+  }
+
+  .category,
+  .category.active {
+    padding: 0 12px;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    color: var(--muted);
+  }
+
+  .category:hover {
+    color: var(--text);
+  }
+
+  .category.active {
+    color: var(--text);
+    box-shadow: inset 3px 0 0 var(--text);
+  }
+
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  .detail {
+    margin: 0;
+    padding: var(--gutter);
+    border: 1px solid var(--border);
+  }
+
+  .back-link {
+    padding-inline: 0;
+    margin-bottom: 8px;
+  }
+
+  .detail-layout {
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+
+  .thumbs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+  }
+
+  .thumb {
+    flex: 0 0 64px;
+    aspect-ratio: 4 / 5;
+    padding: 0;
+    border: 1.5px solid transparent;
+    background: var(--border);
+    cursor: pointer;
+  }
+
+  .thumb.active {
+    border-color: var(--text);
+  }
+
+  .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .detail-info {
+    gap: 12px;
+    padding: 0;
+  }
+
+  /* Inline button under the price; contact block after it. */
+  .buy-bar {
+    position: static;
+    margin: 8px 0 0;
+    padding: 0;
+    background: none;
+    border: 0;
+  }
+
+  .buy-bar-price {
+    display: none;
+  }
+
+  .detail-info .order-contact {
+    order: 1;
+  }
+
+  .cart {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  /* Drawer becomes a right-hand side panel. */
+  .drawer {
+    inset: 0 0 0 auto;
+    width: min(420px, 100%);
+    height: 100%;
+    max-height: none;
+    border-radius: 0;
+    border-left: 1px solid var(--border);
+    animation-name: panel-in;
+  }
+
+  .drawer.closing {
+    animation-name: panel-out;
+  }
+
+  .drawer-panel {
+    height: 100%;
+  }
+
+  .drawer-handle {
+    display: none;
+  }
+
+  .drawer-header {
+    padding-block: 6px;
+  }
+}
+
+@keyframes panel-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes panel-out {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .skeleton::after {
+    display: none;
+  }
 }

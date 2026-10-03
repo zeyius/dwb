@@ -37,3 +37,21 @@ export const MailIcon = () => (
     <path d="m3 7 9 6 9-6" />
   </svg>
 )
+
+export const CloseIcon = () => (
+  <svg {...base}>
+    <path d="M6 6l12 12M18 6 6 18" />
+  </svg>
+)
+
+export const ChevronUpIcon = () => (
+  <svg {...base} width={18} height={18} className="chevron">
+    <path d="m6 15 6-6 6 6" />
+  </svg>
+)
+
+export const TrashIcon = () => (
+  <svg {...base} width={16} height={16}>
+    <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
+  </svg>
+)

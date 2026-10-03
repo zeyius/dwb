@@ -31,3 +31,11 @@ export async function getProductById(id) {
   if (error) throw error
   return data
 }
+
+// Current price / availability for the cart's items (checkout re-checks them).
+export async function getProductsByIds(ids) {
+  if (!ids.length) return []
+  const { data, error } = await supabase.from('products').select('id, name, size, price, is_sold').in('id', ids)
+  if (error) throw error
+  return data
+}
