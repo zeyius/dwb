@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { formatPrice } from '../utils/product'
@@ -5,13 +6,14 @@ import { formatPrice } from '../utils/product'
 // Item list + total, shared by the cart page and the cart drawer.
 // `onNavigate` lets the drawer close itself when a link inside it is followed.
 export default function CartContents({ onNavigate }) {
+  const { t } = useTranslation()
   const { items, total, remove, clear } = useCart()
 
   if (items.length === 0) {
     return (
       <div className="page-message">
-        <p className="cart-empty">Your cart is empty</p>
-        <Link to="/shop" className="btn" onClick={onNavigate}>Browse the shop</Link>
+        <p className="cart-empty">{t('cart.empty')}</p>
+        <Link to="/shop" className="btn" onClick={onNavigate}>{t('cart.browse')}</Link>
       </div>
     )
   }
@@ -26,25 +28,25 @@ export default function CartContents({ onNavigate }) {
             </Link>
             <div className="cart-item-info">
               <Link to={`/shop/${p.id}`} className="cart-item-name" onClick={onNavigate}>{p.name}</Link>
-              {p.size && <span className="muted">Size {p.size}</span>}
+              {p.size && <span className="muted">{t('product.size', { size: p.size })}</span>}
               <span>{formatPrice(p.price)}</span>
             </div>
-            <button type="button" className="link-btn" onClick={() => remove(p.id)} aria-label={`Remove ${p.name}`}>
-              Remove
+            <button type="button" className="link-btn" onClick={() => remove(p.id)} aria-label={t('cart.removeItem', { name: p.name })}>
+              {t('cart.remove')}
             </button>
           </li>
         ))}
       </ul>
       <div className="cart-summary">
         <div className="cart-total">
-          <span>Total</span>
+          <span>{t('cart.total')}</span>
           <strong>{formatPrice(total)}</strong>
         </div>
         <Link to="/checkout" className="btn btn-block" onClick={onNavigate}>
-          Checkout
+          {t('cart.checkout')}
         </Link>
         <button type="button" className="link-btn" onClick={clear}>
-          Clear cart
+          {t('cart.clear')}
         </button>
       </div>
     </>

@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 export async function getStoreSettings() {
   const { data, error } = await supabase
     .from('store_settings')
-    .select('phone, email, instagram_url')
+    .select('phone, email, instagram_url, hero_image_url')
     .eq('id', 1)
     .single()
   if (error) throw error

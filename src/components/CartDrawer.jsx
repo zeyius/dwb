@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import CartContents from './CartContents'
@@ -9,6 +10,7 @@ const CLOSE_MS = 200
 // Cart as a bottom sheet (mobile) / side panel (tablet+). A modal <dialog>
 // gives focus trapping, Esc and top-layer stacking for free.
 export default function CartDrawer() {
+  const { t } = useTranslation()
   const { count, drawerOpen, closeDrawer } = useCart()
   const ref = useRef(null)
   const { key } = useLocation()
@@ -51,8 +53,8 @@ export default function CartDrawer() {
       <div className="drawer-panel">
         <div className="drawer-handle" aria-hidden="true" />
         <header className="drawer-header">
-          <h2 id="drawer-title">Cart{count > 0 && ` (${count})`}</h2>
-          <button type="button" className="icon-btn" onClick={closeDrawer} aria-label="Close cart">
+          <h2 id="drawer-title">{count > 0 ? t('cart.titleCount', { count }) : t('cart.title')}</h2>
+          <button type="button" className="icon-btn" onClick={closeDrawer} aria-label={t('cart.close')}>
             <CloseIcon />
           </button>
         </header>

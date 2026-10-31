@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router-dom'
 import ContactLinks from '../components/ContactLinks'
 import { useCart } from '../context/CartContext'
-import { t } from '../i18n'
 import { loadOrderSummary } from '../utils/orderSummary'
 import { formatPrice } from '../utils/product'
 
@@ -17,6 +17,7 @@ function useOrder() {
 }
 
 export function CheckoutSuccess() {
+  const { t } = useTranslation()
   const { clear } = useCart()
   const { id, ref } = useOrder()
   const summary = loadOrderSummary(id)
@@ -34,9 +35,9 @@ export function CheckoutSuccess() {
   return (
     <div className="page-message checkout-result">
       <SuccessIcon />
-      <h1>{t(cod ? 'success.cod.title' : 'success.paid.title')}</h1>
+      <h1>{t(cod ? 'success.codTitle' : 'success.paidTitle')}</h1>
       {ref && <p className="order-ref">{t('success.order', { ref })}</p>}
-      <p>{t(cod ? 'success.cod.body' : 'success.paid.body')}</p>
+      <p>{t(cod ? 'success.codBody' : 'success.paidBody')}</p>
       {cod && <OrderSummary summary={summary} />}
       <Link to="/shop" className="btn">{t('success.continue')}</Link>
     </div>
@@ -44,6 +45,7 @@ export function CheckoutSuccess() {
 }
 
 function OrderSummary({ summary }) {
+  const { t } = useTranslation()
   return (
     <section className="result-summary" aria-labelledby="result-summary-title">
       <h2 id="result-summary-title">{t('summary.title')}</h2>
@@ -65,7 +67,7 @@ function OrderSummary({ summary }) {
           <dd>{formatPrice(summary.subtotal)}</dd>
         </div>
         <div>
-          <dt>{t(`summary.delivery.${summary.delivery_type}`)}</dt>
+          <dt>{t(summary.delivery_type === 'desk' ? 'summary.desk' : 'summary.home')}</dt>
           <dd>{formatPrice(summary.delivery_price)}</dd>
         </div>
         <div className="result-summary-total">
@@ -74,7 +76,7 @@ function OrderSummary({ summary }) {
         </div>
         <div>
           <dt>{t('summary.payment')}</dt>
-          <dd>{t('payment.cod')}</dd>
+          <dd>{t('payment.cod.label')}</dd>
         </div>
       </dl>
     </section>
@@ -82,18 +84,17 @@ function OrderSummary({ summary }) {
 }
 
 export function CheckoutFailed() {
+  const { t } = useTranslation()
   const { ref } = useOrder()
   return (
     <div className="page-message checkout-result">
-      <h1>Payment not completed</h1>
-      <p>
-        The payment{ref && <> for order <strong dir="ltr">#{ref}</strong></>} was canceled or declined, and you
-        haven’t been charged. Your cart is still saved.
-      </p>
-      <Link to="/checkout" className="btn">Try again</Link>
-      <Link to="/shop" className="link-btn">Back to the shop</Link>
+      <h1>{t('failed.title')}</h1>
+      {ref && <p className="order-ref">{t('success.order', { ref })}</p>}
+      <p>{t('failed.body')}</p>
+      <Link to="/checkout" className="btn">{t('failed.tryAgain')}</Link>
+      <Link to="/shop" className="link-btn">{t('failed.back')}</Link>
       <div className="checkout-result-help">
-        <p className="muted">Having trouble? Contact us:</p>
+        <p className="muted">{t('failed.help')}</p>
         <ContactLinks />
       </div>
     </div>

@@ -1,0 +1,189 @@
+{
+  "common": {
+    "loading": "Chargement…",
+    "tryAgain": "Réessayer",
+    "retry": "Réessayer"
+  },
+  "language": {
+    "label": "Langue",
+    "ar": "العربية",
+    "fr": "Français",
+    "en": "English"
+  },
+  "header": {
+    "home": "Accueil {{name}}",
+    "nav": "Boutique",
+    "instagram": "Instagram",
+    "cart_one": "Panier, {{count}} article",
+    "cart_many": "Panier, {{count}} d’articles",
+    "cart_other": "Panier, {{count}} articles"
+  },
+  "categories": {
+    "label": "Catégories",
+    "all": "Tout",
+    "error": "Échec du chargement · réessayer",
+    "sneakers": "Baskets",
+    "jackets": "Vestes",
+    "ensembles": "Ensembles",
+    "accessories": "Accessoires",
+    "pants": "Pantalons",
+    "flannel-shirts": "Chemises en flanelle",
+    "sweaters": "Pulls",
+    "tee-shirts": "T-shirts"
+  },
+  "shop": {
+    "count_one": "{{count}} article",
+    "count_many": "{{count}} d’articles",
+    "count_other": "{{count}} articles",
+    "loadError": "Impossible de charger les produits.",
+    "empty": "Aucun produit pour le moment",
+    "loadMoreError": "Impossible de charger plus de produits.",
+    "showMore": "Voir plus"
+  },
+  "hero": {
+    "tagline": "Nouveautés, choisies avec soin.",
+    "shopNow": "Découvrir"
+  },
+  "product": {
+    "new": "NOUVEAU",
+    "sold": "VENDU",
+    "size": "Taille {{size}}",
+    "sizeLabel": "Taille",
+    "categoryLabel": "Catégorie",
+    "shop": "Boutique",
+    "soldButton": "Vendu",
+    "inCart": "Dans le panier · Voir",
+    "addToCart": "Ajouter au panier",
+    "loadError": "Impossible de charger ce produit.",
+    "notFound": "Cet article n’existe pas.",
+    "backToShop": "Retour à la boutique",
+    "orderNote": "Ajoutez-le à votre panier, ou écrivez-nous directement pour réserver cette pièce.",
+    "photos": "Photos de {{name}}, {{count}} images",
+    "photo": "{{name}}, image {{index}} sur {{count}}",
+    "showImage": "Afficher l’image {{index}}"
+  },
+  "order": {
+    "howTo": "Comment commander"
+  },
+  "cart": {
+    "title": "Panier",
+    "titleCount": "Panier ({{count}})",
+    "close": "Fermer le panier",
+    "empty": "Votre panier est vide",
+    "browse": "Voir la boutique",
+    "remove": "Retirer",
+    "removeItem": "Retirer {{name}}",
+    "total": "Total",
+    "checkout": "Commander",
+    "clear": "Vider le panier"
+  },
+  "checkout": {
+    "title": "Commande",
+    "contact": "Coordonnées",
+    "name": "Nom complet",
+    "phone": "Téléphone",
+    "phoneHint": "Mobile : 05, 06 ou 07 + 8 chiffres",
+    "delivery": "Livraison",
+    "wilaya": "Wilaya",
+    "chooseWilaya": "Choisissez une wilaya",
+    "commune": "Commune",
+    "chooseCommune": "Choisissez une commune",
+    "chooseWilayaFirst": "Choisissez d’abord une wilaya",
+    "address": "Adresse",
+    "addressPlaceholder": "Rue, immeuble, appartement",
+    "deliveryType": "Type de livraison",
+    "home": "Livraison à domicile",
+    "homeNote": "À votre adresse",
+    "desk": "Retrait au bureau",
+    "deskNote": "À récupérer au bureau du transporteur",
+    "unavailable": "Indisponible",
+    "ratesError": "Impossible de charger les tarifs de livraison.",
+    "summary": "Récapitulatif",
+    "items_one": "({{count}} article)",
+    "items_many": "({{count}} d’articles)",
+    "items_other": "({{count}} articles)",
+    "sold": "Vendu",
+    "subtotal": "Sous-total",
+    "deliveryLine": "Livraison",
+    "total": "Total",
+    "removeSold": "Retirez les articles vendus de votre commande pour continuer.",
+    "justSold_one": "{{names}} vient d’être vendu et a été retiré de votre panier.",
+    "justSold_many": "{{names}} viennent d’être vendus et ont été retirés de votre panier.",
+    "justSold_other": "{{names}} viennent d’être vendus et ont été retirés de votre panier.",
+    "someItems": "Certains articles",
+    "unreachable": "Impossible de joindre le serveur. Vérifiez votre connexion et réessayez.",
+    "fewer": "Diminuer {{name}}",
+    "more": "Augmenter {{name}}",
+    "quantity": "Quantité {{count}}",
+    "oneOfAKind": "Pièce unique : un seul exemplaire disponible"
+  },
+  "payment": {
+    "title": "Paiement",
+    "cod": {
+      "label": "Paiement à la livraison",
+      "note": "Payez à la réception de votre commande"
+    },
+    "edahabia": {
+      "label": "Edahabia",
+      "note": "Carte Algérie Poste"
+    },
+    "cib": {
+      "label": "CIB",
+      "note": "Carte bancaire"
+    },
+    "codInfo": "Rien à payer maintenant : vous payez le livreur en espèces.",
+    "onlineInfo": "Vous serez redirigé vers Chargily Pay pour payer en toute sécurité."
+  },
+  "button": {
+    "confirm": "Confirmer la commande",
+    "pay": "Payer maintenant",
+    "placing": "Envoi de la commande…",
+    "redirecting": "Redirection vers le paiement…"
+  },
+  "errors": {
+    "name": "Indiquez votre nom complet.",
+    "phone": "Indiquez un numéro de mobile, par exemple 0550 12 34 56.",
+    "wilaya": "Choisissez une wilaya.",
+    "commune": "Choisissez une commune.",
+    "address": "Indiquez votre adresse.",
+    "deliveryType": "Choisissez un type de livraison.",
+    "paymentMethod": "Choisissez un mode de paiement.",
+    "noDelivery": "La livraison n’est pas encore disponible à {{wilaya}}."
+  },
+  "serverErrors": {
+    "invalid_fields": "Veuillez vérifier les champs signalés.",
+    "quantity_limit": "Seulement {{max}} exemplaire de « {{name}} » disponible.",
+    "delivery_unavailable_home": "La livraison à domicile n’est pas disponible à {{wilaya}}.",
+    "delivery_unavailable_desk": "Le retrait au bureau n’est pas disponible à {{wilaya}}.",
+    "payment_unavailable": "Le service de paiement est indisponible pour le moment. Réessayez dans un instant.",
+    "generic": "Une erreur est survenue. Veuillez réessayer."
+  },
+  "success": {
+    "codTitle": "Commande reçue",
+    "codBody": "Nous vous appellerons pour confirmer votre commande.",
+    "paidTitle": "Paiement confirmé",
+    "paidBody": "Votre paiement a bien été effectué. Nous vous appellerons pour organiser la livraison.",
+    "order": "Commande n° {{ref}}",
+    "continue": "Continuer mes achats"
+  },
+  "failed": {
+    "title": "Paiement non abouti",
+    "body": "Le paiement a été annulé ou refusé, et vous n’avez pas été débité. Votre panier est conservé.",
+    "tryAgain": "Réessayer",
+    "back": "Retour à la boutique",
+    "help": "Un problème ? Contactez-nous :"
+  },
+  "summary": {
+    "title": "Récapitulatif de la commande",
+    "size": "Taille {{size}}",
+    "subtotal": "Sous-total",
+    "home": "Livraison à domicile",
+    "desk": "Retrait au bureau",
+    "total": "Total",
+    "payment": "Paiement"
+  },
+  "footer": {
+    "tagline": "Des pièces de seconde main, choisies avec soin.",
+    "rights": "© {{year}} {{name}}. Tous droits réservés."
+  }
+}

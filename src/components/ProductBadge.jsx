@@ -1,6 +1,9 @@
+import { useTranslation } from 'react-i18next'
+
 // SOLD takes precedence over NEW.
 export default function ProductBadge({ product }) {
-  if (product.is_sold) return <span className="badge badge-sold">SOLD</span>
-  if (product.is_new) return <span className="badge">NEW</span>
+  const { t } = useTranslation()
+  if (product.is_sold) return <span className="badge badge-sold">{t('product.sold')}</span>
+  if (product.is_new) return <span className="badge">{t('product.new')}</span>
   return null
 }

@@ -18,6 +18,9 @@
   --tap: 44px;
   --press: scale(0.97);
   --fade: 180ms;
+  /* +1 in LTR, -1 in RTL: for slide animations that must follow the
+     reading direction (transforms have no logical equivalent). */
+  --inline-sign: 1;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color: var(--text);
   /* On the root (canvas), not body: a body background would paint over the
@@ -35,6 +38,29 @@
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+/* Arabic (dir="rtl" lang="ar", set by src/i18n.js). */
+[dir='rtl'] {
+  --inline-sign: -1;
+}
+
+:root:lang(ar) {
+  font-family: 'Cairo', system-ui, sans-serif;
+}
+
+/* The tracked uppercase labels are a Latin-script style: letter-spacing pulls
+   Arabic letters apart and breaks their joining, and uppercase has no meaning
+   in Arabic (it only shouts the Latin product names mixed in). Arabic gets
+   neither; French and English keep both. */
+:root:lang(ar) * {
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+/* Icons that point along the reading direction (back arrow). */
+[dir='rtl'] .flip-rtl {
+  transform: scaleX(-1);
 }
 
 body {
@@ -116,6 +142,7 @@ h2 {
 
 /* Layout */
 .app {
+  overflow-x: clip;
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
@@ -168,7 +195,7 @@ h2 {
   place-items: center;
   width: var(--tap);
   height: var(--tap);
-  margin-left: -2px;
+  margin-inline-start: -2px;
   transition: transform 0.1s ease-out;
 }
 
@@ -195,7 +222,39 @@ h2 {
 .header-actions {
   display: flex;
   gap: 4px;
-  margin-right: -6px; /* optically align the icon, not its tap area, with the gutter */
+  margin-inline-end: -6px; /* optically align the icon, not its tap area, with the gutter */
+}
+
+/* AR / FR / EN: 44px-tall tap targets, compact visual. */
+.lang-switch {
+  display: flex;
+  align-items: center;
+  margin-inline-end: 4px;
+}
+
+.lang-switch button {
+  min-width: 34px;
+  height: var(--tap);
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: transform 0.1s ease-out, color 0.15s;
+}
+
+.lang-switch button:active {
+  transform: var(--press);
+}
+
+.lang-switch button[aria-pressed='true'] {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .icon-btn {
@@ -215,7 +274,7 @@ h2 {
 .cart-count {
   position: absolute;
   top: 3px;
-  right: 3px;
+  inset-inline-end: 3px;
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
@@ -236,6 +295,66 @@ h2 {
   40% {
     transform: scale(1.45);
   }
+}
+
+/* Hero: full-bleed banner flush under the header. 100vw counts the desktop
+   scrollbar, so .app clips the overhang instead of scrolling sideways. */
+.hero {
+  position: relative;
+  height: 45vh;
+  height: 45svh;
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  margin-top: calc(-1 * var(--gutter));
+  overflow: hidden;
+}
+
+.hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0;
+  transition: opacity var(--fade) ease-out;
+}
+
+.hero:not(.skeleton) .hero-img {
+  opacity: 1;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: var(--gutter) max(var(--gutter), env(safe-area-inset-left)) calc(var(--gutter) * 2);
+  background: linear-gradient(to bottom, transparent 40%, rgba(0, 0, 0, 0.6));
+  text-align: center;
+  animation: fade-in var(--fade) ease-out;
+}
+
+.hero-tagline {
+  margin: 0;
+  max-width: 32ch;
+  font-size: clamp(1.375rem, 5vw, 2.5rem);
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Mobile: the category bar sits flush under the hero instead of the header. */
+.hero + .shop .categories {
+  margin-top: 0;
+}
+
+/* Land the grid below the sticky header and (mobile) category bar. */
+.shop-content {
+  scroll-margin-top: calc(var(--header-h) + 57px + var(--gutter));
 }
 
 /* Shop */
@@ -370,7 +489,7 @@ h2 {
 .badge {
   position: absolute;
   top: 8px;
-  left: 8px;
+  inset-inline-start: 8px;
   padding: 3px 8px;
   background: var(--badge);
   color: var(--badge-text);
@@ -422,13 +541,13 @@ h2 {
   position: absolute;
   inset: 0;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
-  transform: translateX(-100%);
+  transform: translateX(calc(-100% * var(--inline-sign)));
   animation: shimmer 1.4s infinite;
 }
 
 @keyframes shimmer {
   to {
-    transform: translateX(100%);
+    transform: translateX(calc(100% * var(--inline-sign)));
   }
 }
 
@@ -528,6 +647,7 @@ h2 {
 .back-link {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   min-height: var(--tap);
   padding-inline: var(--gutter);
   color: var(--muted);
@@ -1379,7 +1499,7 @@ h2 {
 .summary-line-end {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: end;
   gap: 4px;
   font-weight: 700;
 }
@@ -1660,6 +1780,16 @@ h2 {
     gap: 40px;
   }
 
+  .hero {
+    height: 60vh;
+    height: 60svh;
+    margin-bottom: var(--gutter);
+  }
+
+  .shop-content {
+    scroll-margin-top: calc(var(--header-h) + var(--gutter));
+  }
+
   .categories {
     top: calc(var(--header-h) + 24px);
     flex: 0 0 180px;
@@ -1693,7 +1823,8 @@ h2 {
 
   .category.active {
     color: var(--text);
-    box-shadow: inset 3px 0 0 var(--text);
+    border-inline-start: 3px solid var(--text);
+    padding-inline-start: 9px;
   }
 
   .grid {
@@ -1770,14 +1901,16 @@ h2 {
     margin: 0 auto;
   }
 
-  /* Drawer becomes a right-hand side panel. */
+  /* Drawer becomes a side panel on the inline-end side (right in LTR,
+     left in RTL). */
   .drawer {
-    inset: 0 0 0 auto;
+    inset-block: 0;
+    inset-inline: auto 0;
     width: min(420px, 100%);
     height: 100%;
     max-height: none;
     border-radius: 0;
-    border-left: 1px solid var(--border);
+    border-inline-start: 1px solid var(--border);
     animation-name: panel-in;
   }
 
@@ -1800,13 +1933,13 @@ h2 {
 
 @keyframes panel-in {
   from {
-    transform: translateX(100%);
+    transform: translateX(calc(100% * var(--inline-sign)));
   }
 }
 
 @keyframes panel-out {
   to {
-    transform: translateX(100%);
+    transform: translateX(calc(100% * var(--inline-sign)));
   }
 }
 

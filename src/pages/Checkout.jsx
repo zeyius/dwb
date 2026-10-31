@@ -1,4 +1,5 @@
 import { cloneElement, useEffect, useId, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import { createCheckout } from '../api/checkout'
 import { getDeliveryRates } from '../api/deliveryRates'
@@ -6,7 +7,6 @@ import { getProductsByIds } from '../api/products'
 import { CardIcon, CashIcon, CheckIcon, ChevronUpIcon, TrashIcon } from '../components/Icons'
 import { useCart } from '../context/CartContext'
 import algeria from '../../supabase/functions/_shared/algeria.json'
-import { t } from '../i18n'
 import {
   deliveryPrice,
   LOCALES,
@@ -47,10 +47,15 @@ function loadForm() {
 }
 
 const pad = (code) => String(code).padStart(2, '0')
+// Wilaya / commune names in the page language (values sent stay the French
+// names, which is what the server validates against).
+const placeName = (place, lang) => (lang === 'ar' ? place.name_ar : place.name)
 // Order in which to focus the first invalid field.
 const FIELD_ORDER = ['name', 'phone', 'wilaya_code', 'commune', 'address', 'delivery_type', 'payment_method']
 
 export default function Checkout() {
+  const { t, i18n } = useTranslation()
+  const lang = i18n.resolvedLanguage
   const { items, remove, setQuantity } = useCart()
   const navigate = useNavigate()
   const [form, setForm] = useState(loadForm)
@@ -130,7 +135,7 @@ export default function Checkout() {
   const allErrors = useMemo(() => {
     const e = validateCustomer(form, algeria)
     // Only when neither option has a price.
-    if (!e.wilaya_code && noDelivery) e.delivery_type = `Delivery isn’t available in ${wilaya?.name} yet.`
+    if (!e.wilaya_code && noDelivery) e.delivery_type = 'errors.noDelivery'
     return e
   }, [form, noDelivery, wilaya])
 
@@ -143,7 +148,32 @@ export default function Checkout() {
     if (form[field] !== '' && allErrors[field]) setErrors((e) => ({ ...e, [field]: allErrors[field] }))
   }
   // After a submit, live client checks plus anything the server flagged.
-  const shown = submitted ? { ...errors, ...allErrors } : errors
+  // Values are translation keys (see validateCustomer).
+  const shownKeys = submitted ? { ...errors, ...allErrors } : errors
+  const shown = Object.fromEntries(
+    Object.entries(shownKeys)
+      .filter(([, key]) => key)
+      .map(([field, key]) => [field, t(key, { wilaya: wilaya ? placeName(wilaya, lang) : '' })]),
+  )
+
+  // Server errors carry a code; show our own translation of it.
+  function serverMessage(body) {
+    switch (body.code) {
+      case 'invalid_fields':
+        return t('serverErrors.invalid_fields')
+      case 'quantity_limit':
+        return t('serverErrors.quantity_limit', { max: body.max, name: body.name })
+      case 'delivery_unavailable': {
+        const w = algeria.find((x) => x.code === body.wilaya_code)
+        const type = body.delivery_type === 'desk' ? 'desk' : 'home'
+        return t(`serverErrors.delivery_unavailable_${type}`, { wilaya: w ? placeName(w, lang) : '' })
+      }
+      case 'payment_unavailable':
+        return t('serverErrors.payment_unavailable')
+      default:
+        return t('serverErrors.generic')
+    }
+  }
 
   async function submit(e) {
     e.preventDefault()
@@ -155,18 +185,17 @@ export default function Checkout() {
       return
     }
     if (unavailable.length) {
-      setBanner('Remove the sold items from your order to continue.')
+      setBanner(t('checkout.removeSold'))
       setSummaryOpen(true)
       return
     }
 
     setSubmitting(true)
     try {
-      const lang = document.documentElement.lang.slice(0, 2)
       const { ok, body } = await createCheckout({
         items: items.map(({ id, quantity }) => ({ id, quantity })),
         customer: { ...form, delivery_type: deliveryType, phone: normalizePhone(form.phone) },
-        locale: LOCALES.includes(lang) ? lang : 'fr',
+        locale: LOCALES.includes(lang) ? lang : 'fr', // Chargily's page language
       })
       if (ok && body.checkout_url) {
         window.location.assign(body.checkout_url)
@@ -181,13 +210,13 @@ export default function Checkout() {
       if (body.unavailable?.length) {
         const names = items.filter((i) => body.unavailable.includes(i.id)).map((i) => i.name)
         body.unavailable.forEach(remove)
-        setBanner(`${names.join(', ') || 'Some items'} just sold and ${names.length > 1 ? 'were' : 'was'} removed from your cart.`)
+        setBanner(t('checkout.justSold', { names: names.join(lang === 'ar' ? '، ' : ', ') || t('checkout.someItems'), count: Math.max(names.length, 1) }))
       } else {
         if (body.fields) setErrors(body.fields)
-        setBanner(body.error ?? 'Something went wrong. Please try again.')
+        setBanner(serverMessage(body))
       }
     } catch {
-      setBanner('Couldn’t reach the server. Check your connection and try again.')
+      setBanner(t('checkout.unreachable'))
     }
     setSubmitting(false)
   }
@@ -195,15 +224,15 @@ export default function Checkout() {
   if (items.length === 0) {
     return (
       <div className="page-message">
-        <h1>Your cart is empty</h1>
-        <Link to="/shop" className="btn">Browse the shop</Link>
+        <h1>{t('cart.empty')}</h1>
+        <Link to="/shop" className="btn">{t('cart.browse')}</Link>
       </div>
     )
   }
 
   return (
     <form className="checkout" onSubmit={submit} noValidate>
-      <h1>Checkout</h1>
+      <h1>{t('checkout.title')}</h1>
 
       {banner && (
         <p className="checkout-banner" role="alert">
@@ -213,8 +242,8 @@ export default function Checkout() {
 
       <div className="checkout-sections">
         <fieldset className="checkout-section">
-          <legend>Contact</legend>
-          <Field id="name" label="Full name" error={shown.name}>
+          <legend>{t('checkout.contact')}</legend>
+          <Field id="name" label={t('checkout.name')} error={shown.name}>
             <input
               value={form.name}
               onChange={(e) => update('name', e.target.value)}
@@ -223,7 +252,7 @@ export default function Checkout() {
               maxLength={100}
             />
           </Field>
-          <Field id="phone" label="Phone" hint="Mobile: 05, 06 or 07 + 8 digits" error={shown.phone}>
+          <Field id="phone" label={t('checkout.phone')} hint={t('checkout.phoneHint')} error={shown.phone}>
             <input
               type="tel"
               inputMode="tel"
@@ -244,20 +273,20 @@ export default function Checkout() {
         </fieldset>
 
         <fieldset className="checkout-section">
-          <legend>Delivery</legend>
-          <Field id="wilaya_code" label="Wilaya" error={shown.wilaya_code}>
+          <legend>{t('checkout.delivery')}</legend>
+          <Field id="wilaya_code" label={t('checkout.wilaya')} error={shown.wilaya_code}>
             <select value={form.wilaya_code} onChange={(e) => update('wilaya_code', e.target.value)} onBlur={() => blur('wilaya_code')}>
               <option value="" disabled>
-                Choose a wilaya
+                {t('checkout.chooseWilaya')}
               </option>
               {algeria.map((w) => (
                 <option key={w.code} value={w.code}>
-                  {pad(w.code)} · {w.name} · {w.name_ar}
+                  {pad(w.code)} · {placeName(w, lang)}
                 </option>
               ))}
             </select>
           </Field>
-          <Field id="commune" label="Commune" error={shown.commune}>
+          <Field id="commune" label={t('checkout.commune')} error={shown.commune}>
             <select
               value={form.commune}
               onChange={(e) => update('commune', e.target.value)}
@@ -265,42 +294,42 @@ export default function Checkout() {
               disabled={!wilaya}
             >
               <option value="" disabled>
-                {wilaya ? 'Choose a commune' : 'Choose a wilaya first'}
+                {wilaya ? t('checkout.chooseCommune') : t('checkout.chooseWilayaFirst')}
               </option>
               {wilaya?.communes.map((c) => (
                 <option key={c.name} value={c.name}>
-                  {c.name} · {c.name_ar}
+                  {placeName(c, lang)}
                 </option>
               ))}
             </select>
           </Field>
-          <Field id="address" label="Address" error={shown.address}>
+          <Field id="address" label={t('checkout.address')} error={shown.address}>
             <input
               value={form.address}
               onChange={(e) => update('address', e.target.value)}
               onBlur={() => blur('address')}
               autoComplete="street-address"
-              placeholder="Street, building, apartment"
+              placeholder={t('checkout.addressPlaceholder')}
               maxLength={200}
             />
           </Field>
 
           <ChoiceGroup
             id="delivery_type"
-            label="Delivery type"
+            label={t('checkout.deliveryType')}
             value={deliveryType}
             onChange={(v) => update('delivery_type', v)}
             error={shown.delivery_type}
             options={[
-              { value: 'home', label: 'Home delivery', note: 'To your address' },
-              { value: 'desk', label: 'Desk pickup', note: 'Collect from the carrier’s office' },
+              { value: 'home', label: t('checkout.home'), note: t('checkout.homeNote') },
+              { value: 'desk', label: t('checkout.desk'), note: t('checkout.deskNote') },
             ].map((o) => ({ ...o, aside: <DeliveryPrice price={prices[o.value]} status={rates.status} hasWilaya={!!wilaya} />, disabled: prices[o.value] === null }))}
           />
           {rates.status === 'error' && (
             <p className="field-error">
-              Couldn’t load delivery prices.{' '}
+              {t('checkout.ratesError')}{' '}
               <button type="button" className="link-btn" onClick={loadRates}>
-                Retry
+                {t('common.retry')}
               </button>
             </p>
           )}
@@ -313,7 +342,7 @@ export default function Checkout() {
             onChange={(v) => update('payment_method', v)}
             error={shown.payment_method}
           />
-          <p className="muted checkout-secure">{t(online ? 'payment.online.info' : 'payment.cod.info')}</p>
+          <p className="muted checkout-secure">{t(online ? 'payment.onlineInfo' : 'payment.codInfo')}</p>
         </fieldset>
       </div>
 
@@ -326,20 +355,20 @@ export default function Checkout() {
           onClick={() => setSummaryOpen((o) => !o)}
         >
           <span>
-            Order summary <span className="muted">({count} {count === 1 ? 'item' : 'items'})</span>
+            {t('checkout.summary')} <span className="muted">{t('checkout.items', { count })}</span>
           </span>
           <ChevronUpIcon />
         </button>
         <div className="summary-details" id="order-summary">
-          <h2 className="summary-title">Order summary</h2>
+          <h2 className="summary-title">{t('checkout.summary')}</h2>
           <ul className="summary-lines">
             {lines.map((l) => (
               <li key={l.id} className={l.sold ? 'summary-line sold' : 'summary-line'}>
                 <img src={l.image} alt="" className="summary-thumb" loading="lazy" decoding="async" width="48" height="60" />
                 <div className="summary-line-info">
                   <span className="summary-line-name">{l.name}</span>
-                  {l.size && <span className="muted">Size {l.size}</span>}
-                  {l.sold && <span className="badge-inline">Sold</span>}
+                  {l.size && <span className="muted">{t('product.size', { size: l.size })}</span>}
+                  {l.sold && <span className="badge-inline">{t('checkout.sold')}</span>}
                 </div>
                 <div className="summary-line-end">
                   <span>{formatPrice(l.price * l.quantity)}</span>
@@ -350,14 +379,14 @@ export default function Checkout() {
           </ul>
           <dl className="summary-totals">
             <div>
-              <dt>Subtotal</dt>
+              <dt>{t('checkout.subtotal')}</dt>
               <dd>{formatPrice(subtotal)}</dd>
             </div>
             <div>
-              <dt>Delivery</dt>
+              <dt>{t('checkout.deliveryLine')}</dt>
               <dd>
                 {!wilaya ? (
-                  <span className="badge-inline">Choose a wilaya</span>
+                  <span className="badge-inline">{t('checkout.chooseWilaya')}</span>
                 ) : delivery == null ? (
                   '—'
                 ) : (
@@ -366,7 +395,7 @@ export default function Checkout() {
               </dd>
             </div>
             <div className="summary-total">
-              <dt>Total</dt>
+              <dt>{t('checkout.total')}</dt>
               <dd>{formatPrice(total)}</dd>
             </div>
           </dl>
@@ -451,6 +480,7 @@ function ChoiceGroup({ id, label, value, onChange, options, error }) {
 // Radio cards with an icon and a check mark on the selected one. Native radios
 // (visually hidden) keep arrow-key navigation and screen reader semantics.
 function PaymentMethods({ value, onChange, error }) {
+  const { t } = useTranslation()
   const name = useId()
   return (
     <div className="field" role="radiogroup" aria-label={t('payment.title')} aria-describedby={error ? 'checkout-payment_method-error' : undefined}>
@@ -468,7 +498,7 @@ function PaymentMethods({ value, onChange, error }) {
             />
             <span className="pay-method-icon">{o.icon}</span>
             <span className="pay-method-text">
-              <span className="pay-method-label">{t(`payment.${o.value}`)}</span>
+              <span className="pay-method-label">{t(`payment.${o.value}.label`)}</span>
               <span className="muted">{t(`payment.${o.value}.note`)}</span>
             </span>
             <span className="pay-method-check">{value === o.value && <CheckIcon />}</span>
@@ -485,32 +515,34 @@ function PaymentMethods({ value, onChange, error }) {
 }
 
 function DeliveryPrice({ price, status, hasWilaya }) {
-  if (!hasWilaya) return <span className="badge-inline">Choose a wilaya</span>
+  const { t } = useTranslation()
+  if (!hasWilaya) return <span className="badge-inline">{t('checkout.chooseWilaya')}</span>
   if (status === 'loading') return <span className="muted">…</span>
   if (status === 'error') return null
-  if (price === null) return <span className="muted">Unavailable</span>
+  if (price === null) return <span className="muted">{t('checkout.unavailable')}</span>
   return <span className="choice-price">{formatPrice(price)}</span>
 }
 
 // − at 1 removes the line; + stops at what's in stock (1 for unique pieces).
 function Stepper({ item, onChange }) {
+  const { t } = useTranslation()
   const max = maxQuantity(item)
   return (
     <div className="stepper">
       <button
         type="button"
         onClick={() => onChange(item.quantity - 1)}
-        aria-label={item.quantity === 1 ? `Remove ${item.name}` : `Fewer ${item.name}`}
+        aria-label={item.quantity === 1 ? t('cart.removeItem', { name: item.name }) : t('checkout.fewer', { name: item.name })}
       >
         {item.quantity === 1 ? <TrashIcon /> : '−'}
       </button>
-      <span aria-label={`Quantity ${item.quantity}`}>{item.quantity}</span>
+      <span aria-label={t('checkout.quantity', { count: item.quantity })}>{item.quantity}</span>
       <button
         type="button"
         onClick={() => onChange(item.quantity + 1)}
         disabled={item.quantity >= max}
-        aria-label={`More ${item.name}`}
-        title={item.quantity >= max ? 'One of a kind: only one available' : undefined}
+        aria-label={t('checkout.more', { name: item.name })}
+        title={item.quantity >= max ? t('checkout.oneOfAKind') : undefined}
       >
         +
       </button>

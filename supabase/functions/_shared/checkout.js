@@ -31,16 +31,18 @@ export function deliveryPrice(rate, type) {
   return Number.isInteger(price) && price >= 0 ? price : null
 }
 
-// Field-level checks; returns { field: message } for anything invalid.
+// Field-level checks; returns { field: translationKey } for anything invalid.
+// Keys, not sentences, so the browser shows them in the visitor's language
+// (src/locales/*.json, under "errors").
 export function validateCustomer(c, wilayas) {
   const errors = {}
-  if (!c.name || c.name.trim().length < 3) errors.name = 'Enter your full name.'
-  if (!isValidPhone(c.phone)) errors.phone = 'Enter a mobile number like 0550 12 34 56.'
+  if (!c.name || c.name.trim().length < 3) errors.name = 'errors.name'
+  if (!isValidPhone(c.phone)) errors.phone = 'errors.phone'
   const wilaya = wilayas.find((w) => w.code === Number(c.wilaya_code))
-  if (!wilaya) errors.wilaya_code = 'Choose a wilaya.'
-  else if (!wilaya.communes.some((m) => m.name === c.commune)) errors.commune = 'Choose a commune.'
-  if (!c.address || c.address.trim().length < 5) errors.address = 'Enter your address.'
-  if (!DELIVERY_TYPES.includes(c.delivery_type)) errors.delivery_type = 'Choose a delivery type.'
-  if (!PAYMENT_METHODS.includes(c.payment_method)) errors.payment_method = 'Choose a payment method.'
+  if (!wilaya) errors.wilaya_code = 'errors.wilaya'
+  else if (!wilaya.communes.some((m) => m.name === c.commune)) errors.commune = 'errors.commune'
+  if (!c.address || c.address.trim().length < 5) errors.address = 'errors.address'
+  if (!DELIVERY_TYPES.includes(c.delivery_type)) errors.delivery_type = 'errors.deliveryType'
+  if (!PAYMENT_METHODS.includes(c.payment_method)) errors.payment_method = 'errors.paymentMethod'
   return errors
 }

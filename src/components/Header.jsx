@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { STORE } from '../config'
 import { useCart } from '../context/CartContext'
 import { useStoreSettings } from '../context/StoreSettingsContext'
 import { CartIcon, InstagramIcon } from './Icons'
+import LanguageSwitcher from './LanguageSwitcher'
 
 export default function Header() {
+  const { t } = useTranslation()
   const { count, openDrawer } = useCart()
   const { instagramUrl } = useStoreSettings()
 
@@ -19,20 +22,21 @@ export default function Header() {
 
   return (
     <header className="header">
-      <Link to="/shop" className="logo" aria-label={`${STORE.name} home`}>
+      <Link to="/shop" className="logo" aria-label={t('header.home', { name: STORE.name })}>
         <span className="logo-disc">
           <img src="/logo-dark.webp" alt="" width="40" height="40" />
         </span>
       </Link>
-      <nav className="header-actions" aria-label="Store">
+      <nav className="header-actions" aria-label={t('header.nav')}>
+        <LanguageSwitcher />
         {instagramUrl && (
-          <a href={instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="icon-btn">
+          <a href={instagramUrl} target="_blank" rel="noopener noreferrer" aria-label={t('header.instagram')} className="icon-btn">
             <InstagramIcon />
           </a>
         )}
         <Link
           to="/shop/cart"
-          aria-label={`Cart, ${count} ${count === 1 ? 'item' : 'items'}`}
+          aria-label={t('header.cart', { count })}
           className="icon-btn"
           onClick={(e) => {
             // Plain clicks open the drawer; modified clicks still open the page.

@@ -1,0 +1,185 @@
+{
+  "common": {
+    "loading": "Loading…",
+    "tryAgain": "Try again",
+    "retry": "Retry"
+  },
+  "language": {
+    "label": "Language",
+    "ar": "العربية",
+    "fr": "Français",
+    "en": "English"
+  },
+  "header": {
+    "home": "{{name}} home",
+    "nav": "Store",
+    "instagram": "Instagram",
+    "cart_one": "Cart, {{count}} item",
+    "cart_other": "Cart, {{count}} items"
+  },
+  "categories": {
+    "label": "Categories",
+    "all": "All",
+    "error": "Categories failed · retry",
+    "sneakers": "Sneakers",
+    "jackets": "Jackets",
+    "ensembles": "Ensembles",
+    "accessories": "Accessories",
+    "pants": "Pants",
+    "flannel-shirts": "Flannel shirts",
+    "sweaters": "Sweaters",
+    "tee-shirts": "T-shirts"
+  },
+  "shop": {
+    "count_one": "{{count}} item",
+    "count_other": "{{count}} items",
+    "loadError": "Couldn’t load products.",
+    "empty": "No products yet",
+    "loadMoreError": "Couldn’t load more products.",
+    "showMore": "Show more"
+  },
+  "hero": {
+    "tagline": "New arrivals, picked with care.",
+    "shopNow": "Shop now"
+  },
+  "product": {
+    "new": "NEW",
+    "sold": "SOLD",
+    "size": "Size {{size}}",
+    "sizeLabel": "Size",
+    "categoryLabel": "Category",
+    "shop": "Shop",
+    "soldButton": "Sold",
+    "inCart": "In cart · View",
+    "addToCart": "Add to cart",
+    "loadError": "Couldn’t load this product.",
+    "notFound": "This item doesn’t exist.",
+    "backToShop": "Back to shop",
+    "orderNote": "Add it to your cart, or message us directly to reserve this piece.",
+    "photos": "{{name}} photos, {{count}} images",
+    "photo": "{{name}}, image {{index}} of {{count}}",
+    "showImage": "Show image {{index}}"
+  },
+  "order": {
+    "howTo": "How to order"
+  },
+  "cart": {
+    "title": "Cart",
+    "titleCount": "Cart ({{count}})",
+    "close": "Close cart",
+    "empty": "Your cart is empty",
+    "browse": "Browse the shop",
+    "remove": "Remove",
+    "removeItem": "Remove {{name}}",
+    "total": "Total",
+    "checkout": "Checkout",
+    "clear": "Clear cart"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "contact": "Contact",
+    "name": "Full name",
+    "phone": "Phone",
+    "phoneHint": "Mobile: 05, 06 or 07 + 8 digits",
+    "delivery": "Delivery",
+    "wilaya": "Wilaya",
+    "chooseWilaya": "Choose a wilaya",
+    "commune": "Commune",
+    "chooseCommune": "Choose a commune",
+    "chooseWilayaFirst": "Choose a wilaya first",
+    "address": "Address",
+    "addressPlaceholder": "Street, building, apartment",
+    "deliveryType": "Delivery type",
+    "home": "Home delivery",
+    "homeNote": "To your address",
+    "desk": "Desk pickup",
+    "deskNote": "Collect from the carrier’s office",
+    "unavailable": "Unavailable",
+    "ratesError": "Couldn’t load delivery prices.",
+    "summary": "Order summary",
+    "items_one": "({{count}} item)",
+    "items_other": "({{count}} items)",
+    "sold": "Sold",
+    "subtotal": "Subtotal",
+    "deliveryLine": "Delivery",
+    "total": "Total",
+    "removeSold": "Remove the sold items from your order to continue.",
+    "justSold_one": "{{names}} just sold and was removed from your cart.",
+    "justSold_other": "{{names}} just sold and were removed from your cart.",
+    "someItems": "Some items",
+    "unreachable": "Couldn’t reach the server. Check your connection and try again.",
+    "fewer": "Fewer {{name}}",
+    "more": "More {{name}}",
+    "quantity": "Quantity {{count}}",
+    "oneOfAKind": "One of a kind: only one available"
+  },
+  "payment": {
+    "title": "Payment",
+    "cod": {
+      "label": "Cash on delivery",
+      "note": "Pay when you receive your order"
+    },
+    "edahabia": {
+      "label": "Edahabia",
+      "note": "Algérie Poste card"
+    },
+    "cib": {
+      "label": "CIB",
+      "note": "Bank card"
+    },
+    "codInfo": "Nothing to pay now: you pay the courier in cash.",
+    "onlineInfo": "You’ll be redirected to Chargily Pay to pay securely."
+  },
+  "button": {
+    "confirm": "Confirm order",
+    "pay": "Pay now",
+    "placing": "Placing order…",
+    "redirecting": "Redirecting to payment…"
+  },
+  "errors": {
+    "name": "Enter your full name.",
+    "phone": "Enter a mobile number like 0550 12 34 56.",
+    "wilaya": "Choose a wilaya.",
+    "commune": "Choose a commune.",
+    "address": "Enter your address.",
+    "deliveryType": "Choose a delivery type.",
+    "paymentMethod": "Choose a payment method.",
+    "noDelivery": "Delivery isn’t available in {{wilaya}} yet."
+  },
+  "serverErrors": {
+    "invalid_fields": "Please check the highlighted fields.",
+    "quantity_limit": "Only {{max}} of “{{name}}” is available.",
+    "delivery_unavailable_home": "Home delivery isn’t available in {{wilaya}}.",
+    "delivery_unavailable_desk": "Desk pickup isn’t available in {{wilaya}}.",
+    "payment_unavailable": "The payment service is unavailable right now. Please try again in a moment.",
+    "generic": "Something went wrong. Please try again."
+  },
+  "success": {
+    "codTitle": "Order received",
+    "codBody": "We’ll call you to confirm your order.",
+    "paidTitle": "Payment confirmed",
+    "paidBody": "Your payment went through. We’ll call you to arrange delivery.",
+    "order": "Order #{{ref}}",
+    "continue": "Continue shopping"
+  },
+  "failed": {
+    "title": "Payment not completed",
+    "body": "The payment was canceled or declined, and you haven’t been charged. Your cart is still saved.",
+    "tryAgain": "Try again",
+    "back": "Back to the shop",
+    "help": "Having trouble? Contact us:"
+  },
+  "summary": {
+    "title": "Order summary",
+    "size": "Size {{size}}",
+    "subtotal": "Subtotal",
+    "home": "Home delivery",
+    "desk": "Desk pickup",
+    "total": "Total",
+    "payment": "Payment"
+  },
+  "footer": {
+    "tagline": "Second-hand pieces, picked with care.",
+    "rights": "© {{year}} {{name}}. All rights reserved."
+  }
+}

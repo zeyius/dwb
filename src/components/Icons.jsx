@@ -76,3 +76,10 @@ export const CheckIcon = () => (
     <path d="m5 12.5 4.5 4.5L19 7.5" />
   </svg>
 )
+
+// Points "back" in the reading direction: flipped under dir="rtl" (see .flip-rtl).
+export const BackIcon = () => (
+  <svg {...base} width={18} height={18} className="flip-rtl">
+    <path d="M19 12H5M11 6l-6 6 6 6" />
+  </svg>
+)

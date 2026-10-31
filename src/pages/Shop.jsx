@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
 import { getCategories } from '../api/categories'
 import { getProducts } from '../api/products'
 import CategorySidebar from '../components/CategorySidebar'
+import Hero from '../components/Hero'
 import ProductCard, { ProductCardSkeleton } from '../components/ProductCard'
 import StatusMessage from '../components/StatusMessage'
+import { categoryName } from '../utils/category'
 
 const PAGE_SIZE = 8
 // Cards in the first row on the widest layout; these skip lazy-loading.
@@ -19,6 +22,7 @@ let categoriesCache = null
 const skeletons = (n) => Array.from({ length: n }, (_, i) => <ProductCardSkeleton key={`s${i}`} />)
 
 export default function Shop() {
+  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const category = searchParams.get('category') || null
   const cached = listCache.get(category)
@@ -31,6 +35,7 @@ export default function Shop() {
   const [status, setStatus] = useState(cached ? 'ready' : 'loading') // loading | ready | error
   const [moreStatus, setMoreStatus] = useState('idle') // idle | loading | error
   const requestId = useRef(0)
+  const productsRef = useRef(null)
 
   const loadCategories = useCallback(() => {
     setCategoriesError(null)
@@ -91,55 +96,59 @@ export default function Shop() {
     )
   }
 
-  const heading = category ? (categories.find((c) => c.slug === category)?.name ?? '') : 'All'
+  const current = categories.find((c) => c.slug === category)
+  const heading = category ? (current ? categoryName(t, current) : '') : t('categories.all')
   const remaining = total - items.length
 
   return (
-    <div className="shop">
-      <CategorySidebar
-        categories={categories}
-        active={category}
-        error={categoriesError}
-        onRetry={loadCategories}
-      />
-      <section className="shop-content" aria-busy={status === 'loading'}>
-        <div className="shop-heading">
-          <h1>{heading || ' '}</h1>
-          {/* Always rendered so the count appearing doesn't shift the grid. */}
-          <span className="muted">{status === 'ready' ? `${total} items` : ' '}</span>
-        </div>
+    <>
+      <Hero targetRef={productsRef} />
+      <div className="shop">
+        <CategorySidebar
+          categories={categories}
+          active={category}
+          error={categoriesError}
+          onRetry={loadCategories}
+        />
+        <section className="shop-content" ref={productsRef} aria-busy={status === 'loading'}>
+          <div className="shop-heading">
+            <h1>{heading || ' '}</h1>
+            {/* Always rendered so the count appearing doesn't shift the grid. */}
+            <span className="muted">{status === 'ready' ? t('shop.count', { count: total }) : ' '}</span>
+          </div>
 
-        {status === 'loading' && <div className="grid">{skeletons(PAGE_SIZE)}</div>}
-        {status === 'error' && (
-          <StatusMessage onRetry={loadFirstPage}>Couldn’t load products.</StatusMessage>
-        )}
-        {status === 'ready' && items.length === 0 && <StatusMessage>No products yet</StatusMessage>}
+          {status === 'loading' && <div className="grid">{skeletons(PAGE_SIZE)}</div>}
+          {status === 'error' && (
+            <StatusMessage onRetry={loadFirstPage}>{t('shop.loadError')}</StatusMessage>
+          )}
+          {status === 'ready' && items.length === 0 && <StatusMessage>{t('shop.empty')}</StatusMessage>}
 
-        {status === 'ready' && items.length > 0 && (
-          <>
-            <div className="grid">
-              {items.map((p, i) => (
-                <ProductCard key={p.id} product={p} priority={i < PRIORITY_CARDS} />
-              ))}
-              {moreStatus === 'loading' && skeletons(Math.min(PAGE_SIZE, remaining))}
-            </div>
-
-            {remaining > 0 && (
-              <div className="show-more">
-                {moreStatus === 'error' && <p className="muted">Couldn’t load more products.</p>}
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  onClick={showMore}
-                  disabled={moreStatus === 'loading'}
-                >
-                  {moreStatus === 'loading' ? 'Loading…' : moreStatus === 'error' ? 'Try again' : 'Show more'}
-                </button>
+          {status === 'ready' && items.length > 0 && (
+            <>
+              <div className="grid">
+                {items.map((p, i) => (
+                  <ProductCard key={p.id} product={p} priority={i < PRIORITY_CARDS} />
+                ))}
+                {moreStatus === 'loading' && skeletons(Math.min(PAGE_SIZE, remaining))}
               </div>
-            )}
-          </>
-        )}
-      </section>
-    </div>
+
+              {remaining > 0 && (
+                <div className="show-more">
+                  {moreStatus === 'error' && <p className="muted">{t('shop.loadMoreError')}</p>}
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={showMore}
+                    disabled={moreStatus === 'loading'}
+                  >
+                    {moreStatus === 'loading' ? t('common.loading') : moreStatus === 'error' ? t('common.tryAgain') : t('shop.showMore')}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </section>
+      </div>
+    </>
   )
 }

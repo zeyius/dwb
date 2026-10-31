@@ -2,6 +2,10 @@
 // Body: { items: [{ id, quantity }], customer: { name, phone, wilaya_code,
 //         commune, address, delivery_type, payment_method }, locale }
 //
+// Errors: { error: English message, code, ...details }. The browser shows its
+// own translation for the code (src/locales/*.json, "serverErrors") and falls
+// back to a generic message.
+//
 // Prices are never taken from the client: products and the delivery rate are
 // re-read from Supabase and the total recomputed here. The order is stored as
 // pending / unpaid, then:
@@ -40,7 +44,7 @@ export async function handler(req: Request): Promise<Response> {
     if (err instanceof HttpError) return json({ error: err.message, ...err.extra }, err.status, corsHeaders)
     // Anything else: log it, but don't leak internals to the client.
     console.error(err)
-    return json({ error: 'Something went wrong. Please try again.' }, 500, corsHeaders)
+    return json({ error: 'Something went wrong. Please try again.', code: 'server_error' }, 500, corsHeaders)
   }
 }
 
@@ -51,7 +55,7 @@ async function createCheckout(req: Request): Promise<Response> {
 
   // Customer details: same rules as the form.
   const errors = validateCustomer(customer, algeria)
-  if (Object.keys(errors).length) throw new HttpError(400, 'Please check the highlighted fields.', { fields: errors })
+  if (Object.keys(errors).length) throw new HttpError(400, 'Please check the highlighted fields.', { code: 'invalid_fields', fields: errors })
   const wilaya = algeria.find((w) => w.code === Number(customer.wilaya_code))!
 
   // Products: current price and availability from the database.
@@ -64,12 +68,16 @@ async function createCheckout(req: Request): Promise<Response> {
   const byId = new Map((data as Product[]).map((p) => [p.id, p]))
   const unavailable = ids.filter((id) => !byId.get(id) || byId.get(id)!.is_sold)
   if (unavailable.length) {
-    throw new HttpError(409, 'Some items in your cart are no longer available.', { unavailable })
+    throw new HttpError(409, 'Some items in your cart are no longer available.', { code: 'unavailable', unavailable })
   }
   for (const { id, quantity } of items) {
     const product = byId.get(id)!
     if (quantity > maxQuantity(product)) {
-      throw new HttpError(400, `Only ${maxQuantity(product)} of “${product.name}” is available.`)
+      throw new HttpError(400, `Only ${maxQuantity(product)} of “${product.name}” is available.`, {
+        code: 'quantity_limit',
+        name: product.name,
+        max: maxQuantity(product),
+      })
     }
   }
 
@@ -82,7 +90,11 @@ async function createCheckout(req: Request): Promise<Response> {
   if (rateError) throw rateError
   const delivery = deliveryPrice(rate, customer.delivery_type)
   if (delivery === null) {
-    throw new HttpError(422, `${customer.delivery_type === 'desk' ? 'Desk' : 'Home'} delivery isn’t available in ${wilaya.name}.`)
+    throw new HttpError(422, `${customer.delivery_type === 'desk' ? 'Desk' : 'Home'} delivery isn’t available in ${wilaya.name}.`, {
+      code: 'delivery_unavailable',
+      delivery_type: customer.delivery_type,
+      wilaya_code: wilaya.code,
+    })
   }
 
   const lines = items.map(({ id, quantity }) => {
@@ -136,7 +148,9 @@ async function createCheckout(req: Request): Promise<Response> {
     // Keep the row for the record, but flag that no payment was ever possible.
     await db.from('orders').update({ payment_status: 'failed' }).eq('id', order.id)
     console.error('Chargily checkout failed', err)
-    throw new HttpError(502, 'The payment service is unavailable right now. Please try again in a moment.')
+    throw new HttpError(502, 'The payment service is unavailable right now. Please try again in a moment.', {
+      code: 'payment_unavailable',
+    })
   }
 
   const { error: saveError } = await db
@@ -155,38 +169,38 @@ async function createCheckout(req: Request): Promise<Response> {
 // site; restrict it with an allowlist if that matters.
 function requestOrigin(req: Request): string {
   const raw = req.headers.get('origin')
-  if (!raw) throw new HttpError(400, 'Missing Origin header.')
+  if (!raw) throw new HttpError(400, 'Missing Origin header.', { code: 'origin_missing' })
   let url: URL
   try {
     url = new URL(raw)
   } catch {
-    throw new HttpError(400, 'Invalid Origin header.')
+    throw new HttpError(400, 'Invalid Origin header.', { code: 'origin_invalid' })
   }
   if ((url.protocol !== 'https:' && url.protocol !== 'http:') || url.origin !== raw.replace(/\/$/, '')) {
-    throw new HttpError(400, 'Invalid Origin header.')
+    throw new HttpError(400, 'Invalid Origin header.', { code: 'origin_invalid' })
   }
   return url.origin
 }
 
 async function readBody(req: Request): Promise<{ items: CartItem[]; customer: Customer; locale: unknown }> {
   const raw = await req.text()
-  if (raw.length > MAX_BODY) throw new HttpError(413, 'Request too large.')
+  if (raw.length > MAX_BODY) throw new HttpError(413, 'Request too large.', { code: 'bad_request' })
   let body
   try {
     body = JSON.parse(raw)
   } catch {
-    throw new HttpError(400, 'Invalid JSON.')
+    throw new HttpError(400, 'Invalid JSON.', { code: 'bad_request' })
   }
   const { items, customer, locale } = body ?? {}
-  if (!Array.isArray(items) || items.length === 0) throw new HttpError(400, 'Your cart is empty.')
-  if (items.length > MAX_ITEMS) throw new HttpError(400, 'Too many items.')
+  if (!Array.isArray(items) || items.length === 0) throw new HttpError(400, 'Your cart is empty.', { code: 'cart_empty' })
+  if (items.length > MAX_ITEMS) throw new HttpError(400, 'Too many items.', { code: 'bad_request' })
   const seen = new Set<string>()
   for (const item of items) {
-    if (!UUID.test(item?.id ?? '') || seen.has(item.id)) throw new HttpError(400, 'Invalid cart item.')
-    if (!Number.isInteger(item.quantity) || item.quantity < 1) throw new HttpError(400, 'Invalid quantity.')
+    if (!UUID.test(item?.id ?? '') || seen.has(item.id)) throw new HttpError(400, 'Invalid cart item.', { code: 'bad_request' })
+    if (!Number.isInteger(item.quantity) || item.quantity < 1) throw new HttpError(400, 'Invalid quantity.', { code: 'bad_request' })
     seen.add(item.id)
   }
-  if (!customer || typeof customer !== 'object') throw new HttpError(400, 'Missing customer details.')
+  if (!customer || typeof customer !== 'object') throw new HttpError(400, 'Missing customer details.', { code: 'bad_request' })
   // Only known string fields go any further.
   const pick = (k: string) =>
     typeof customer[k] === 'string' || typeof customer[k] === 'number' ? String(customer[k]) : ''

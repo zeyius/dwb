@@ -1,0 +1,201 @@
+{
+  "common": {
+    "loading": "جارٍ التحميل…",
+    "tryAgain": "أعد المحاولة",
+    "retry": "إعادة المحاولة"
+  },
+  "language": {
+    "label": "اللغة",
+    "ar": "العربية",
+    "fr": "Français",
+    "en": "English"
+  },
+  "header": {
+    "home": "الصفحة الرئيسية لـ {{name}}",
+    "nav": "المتجر",
+    "instagram": "إنستغرام",
+    "cart_zero": "السلة، لا توجد قطع",
+    "cart_one": "السلة، قطعة واحدة",
+    "cart_two": "السلة، قطعتان",
+    "cart_few": "السلة، {{count}} قطع",
+    "cart_many": "السلة، {{count}} قطعة",
+    "cart_other": "السلة، {{count}} قطعة"
+  },
+  "categories": {
+    "label": "الأقسام",
+    "all": "الكل",
+    "error": "تعذّر تحميل الأقسام · أعد المحاولة",
+    "sneakers": "أحذية",
+    "jackets": "جاكيتات",
+    "ensembles": "أطقم",
+    "accessories": "إكسسوارات",
+    "pants": "سراويل",
+    "flannel-shirts": "قمصان فلانيل",
+    "sweaters": "كنزات",
+    "tee-shirts": "تيشيرتات"
+  },
+  "shop": {
+    "count_zero": "لا توجد قطع",
+    "count_one": "قطعة واحدة",
+    "count_two": "قطعتان",
+    "count_few": "{{count}} قطع",
+    "count_many": "{{count}} قطعة",
+    "count_other": "{{count}} قطعة",
+    "loadError": "تعذّر تحميل المنتجات.",
+    "empty": "لا توجد منتجات بعد",
+    "loadMoreError": "تعذّر تحميل المزيد من المنتجات.",
+    "showMore": "عرض المزيد"
+  },
+  "hero": {
+    "tagline": "وصل حديثاً، مختار بعناية.",
+    "shopNow": "تسوّق الآن"
+  },
+  "product": {
+    "new": "جديد",
+    "sold": "مُباع",
+    "size": "المقاس {{size}}",
+    "sizeLabel": "المقاس",
+    "categoryLabel": "القسم",
+    "shop": "المتجر",
+    "soldButton": "مُباع",
+    "inCart": "في السلة · عرض",
+    "addToCart": "أضف إلى السلة",
+    "loadError": "تعذّر تحميل هذا المنتج.",
+    "notFound": "هذه القطعة غير موجودة.",
+    "backToShop": "العودة إلى المتجر",
+    "orderNote": "أضفها إلى سلتك، أو راسلنا مباشرة لحجز هذه القطعة.",
+    "photos": "صور {{name}}، {{count}} صور",
+    "photo": "{{name}}، الصورة {{index}} من {{count}}",
+    "showImage": "عرض الصورة {{index}}"
+  },
+  "order": {
+    "howTo": "طريقة الطلب"
+  },
+  "cart": {
+    "title": "السلة",
+    "titleCount": "السلة ({{count}})",
+    "close": "إغلاق السلة",
+    "empty": "سلتك فارغة",
+    "browse": "تصفّح المتجر",
+    "remove": "إزالة",
+    "removeItem": "إزالة {{name}}",
+    "total": "المجموع",
+    "checkout": "إتمام الطلب",
+    "clear": "إفراغ السلة"
+  },
+  "checkout": {
+    "title": "إتمام الطلب",
+    "contact": "معلومات الاتصال",
+    "name": "الاسم الكامل",
+    "phone": "رقم الهاتف",
+    "phoneHint": "رقم جوال: 05 أو 06 أو 07 + 8 أرقام",
+    "delivery": "التوصيل",
+    "wilaya": "الولاية",
+    "chooseWilaya": "اختر الولاية",
+    "commune": "البلدية",
+    "chooseCommune": "اختر البلدية",
+    "chooseWilayaFirst": "اختر الولاية أولًا",
+    "address": "العنوان",
+    "addressPlaceholder": "الشارع، العمارة، الشقة",
+    "deliveryType": "طريقة التوصيل",
+    "home": "التوصيل إلى المنزل",
+    "homeNote": "إلى عنوانك",
+    "desk": "الاستلام من المكتب",
+    "deskNote": "استلمها من مكتب شركة التوصيل",
+    "unavailable": "غير متوفر",
+    "ratesError": "تعذّر تحميل أسعار التوصيل.",
+    "summary": "ملخص الطلب",
+    "items_zero": "(لا توجد قطع)",
+    "items_one": "(قطعة واحدة)",
+    "items_two": "(قطعتان)",
+    "items_few": "({{count}} قطع)",
+    "items_many": "({{count}} قطعة)",
+    "items_other": "({{count}} قطعة)",
+    "sold": "مُباع",
+    "subtotal": "المجموع الفرعي",
+    "deliveryLine": "التوصيل",
+    "total": "المجموع",
+    "removeSold": "أزل القطع المُباعة من طلبك للمتابعة.",
+    "justSold_zero": "{{names}} بيعت للتو وأُزيلت من سلتك.",
+    "justSold_one": "{{names}} بيعت للتو وأُزيلت من سلتك.",
+    "justSold_two": "{{names}} بيعتا للتو وأُزيلتا من سلتك.",
+    "justSold_few": "{{names}} بيعت للتو وأُزيلت من سلتك.",
+    "justSold_many": "{{names}} بيعت للتو وأُزيلت من سلتك.",
+    "justSold_other": "{{names}} بيعت للتو وأُزيلت من سلتك.",
+    "someItems": "بعض القطع",
+    "unreachable": "تعذّر الاتصال بالخادم. تحقّق من اتصالك وأعد المحاولة.",
+    "fewer": "إنقاص {{name}}",
+    "more": "زيادة {{name}}",
+    "quantity": "الكمية {{count}}",
+    "oneOfAKind": "قطعة فريدة: متوفرة نسخة واحدة فقط"
+  },
+  "payment": {
+    "title": "الدفع",
+    "cod": {
+      "label": "الدفع عند الاستلام",
+      "note": "ادفع عند استلام طلبك"
+    },
+    "edahabia": {
+      "label": "الذهبية",
+      "note": "بطاقة بريد الجزائر"
+    },
+    "cib": {
+      "label": "CIB",
+      "note": "بطاقة بنكية"
+    },
+    "codInfo": "لا شيء تدفعه الآن: تدفع نقدًا لعامل التوصيل.",
+    "onlineInfo": "سيتم تحويلك إلى Chargily Pay للدفع بأمان."
+  },
+  "button": {
+    "confirm": "تأكيد الطلب",
+    "pay": "ادفع الآن",
+    "placing": "جارٍ إرسال الطلب…",
+    "redirecting": "جارٍ التحويل إلى الدفع…"
+  },
+  "errors": {
+    "name": "أدخل اسمك الكامل.",
+    "phone": "أدخل رقم جوال مثل 0550 12 34 56.",
+    "wilaya": "اختر الولاية.",
+    "commune": "اختر البلدية.",
+    "address": "أدخل عنوانك.",
+    "deliveryType": "اختر طريقة التوصيل.",
+    "paymentMethod": "اختر طريقة الدفع.",
+    "noDelivery": "التوصيل غير متوفر بعد في ولاية {{wilaya}}."
+  },
+  "serverErrors": {
+    "invalid_fields": "يُرجى مراجعة الحقول المُشار إليها.",
+    "quantity_limit": "متوفر {{max}} فقط من «{{name}}».",
+    "delivery_unavailable_home": "التوصيل إلى المنزل غير متوفر في ولاية {{wilaya}}.",
+    "delivery_unavailable_desk": "الاستلام من المكتب غير متوفر في ولاية {{wilaya}}.",
+    "payment_unavailable": "خدمة الدفع غير متاحة حاليًا. أعد المحاولة بعد قليل.",
+    "generic": "حدث خطأ ما. يُرجى إعادة المحاولة."
+  },
+  "success": {
+    "codTitle": "تم استلام طلبك",
+    "codBody": "سنتصل بك لتأكيد طلبك.",
+    "paidTitle": "تم تأكيد الدفع",
+    "paidBody": "تمت عملية الدفع بنجاح. سنتصل بك لترتيب التوصيل.",
+    "order": "الطلب رقم {{ref}}",
+    "continue": "مواصلة التسوق"
+  },
+  "failed": {
+    "title": "لم تكتمل عملية الدفع",
+    "body": "أُلغيت عملية الدفع أو رُفضت، ولم يُخصم أي مبلغ. سلتك ما زالت محفوظة.",
+    "tryAgain": "أعد المحاولة",
+    "back": "العودة إلى المتجر",
+    "help": "تواجه مشكلة؟ تواصل معنا:"
+  },
+  "summary": {
+    "title": "ملخص الطلب",
+    "size": "المقاس {{size}}",
+    "subtotal": "المجموع الفرعي",
+    "home": "التوصيل إلى المنزل",
+    "desk": "الاستلام من المكتب",
+    "total": "المجموع",
+    "payment": "الدفع"
+  },
+  "footer": {
+    "tagline": "قطع مستعملة، مختارة بعناية.",
+    "rights": "© {{year}} {{name}}. جميع الحقوق محفوظة."
+  }
+}

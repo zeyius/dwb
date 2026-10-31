@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import StatusMessage from './components/StatusMessage'
@@ -12,7 +13,11 @@ import Cart from './pages/Cart'
 const Checkout = lazy(() => import('./pages/Checkout'))
 const CheckoutSuccess = lazy(() => import('./pages/CheckoutResult').then((m) => ({ default: m.CheckoutSuccess })))
 const CheckoutFailed = lazy(() => import('./pages/CheckoutResult').then((m) => ({ default: m.CheckoutFailed })))
-const loading = <StatusMessage>Loading…</StatusMessage>
+function Loading() {
+  const { t } = useTranslation()
+  return <StatusMessage>{t('common.loading')}</StatusMessage>
+}
+const loading = <Loading />
 
 export default function App() {
   return (
