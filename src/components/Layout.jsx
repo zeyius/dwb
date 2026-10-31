@@ -11,9 +11,9 @@ export default function Layout() {
   return (
     <div className="app">
       <Header />
-      {/* Keyed by path so each page fades in; category changes (?category=)
-          stay on the same element and don't flash. */}
-      <main className="main page" key={pathname}>
+      {/* Keyed by path so each page starts fresh; category changes
+          (?category=) stay on the same element. */}
+      <main className="main" key={pathname}>
         <Outlet />
       </main>
       <Footer />

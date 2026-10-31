@@ -9,7 +9,7 @@ export const LANGUAGES = ['ar', 'fr', 'en']
 export const LANG_STORAGE_KEY = 'lang'
 
 // Language: the visitor's saved choice, else their browser language if it's
-// one of ours (ar-DZ -> ar, en-US -> en), else French.
+// one of ours (ar-DZ -> ar, en-US -> en), else Arabic (most customers read Arabic).
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -18,7 +18,7 @@ i18n
     supportedLngs: LANGUAGES,
     nonExplicitSupportedLngs: true,
     load: 'languageOnly',
-    fallbackLng: 'fr',
+    fallbackLng: 'ar',
     detection: {
       order: ['localStorage', 'navigator'],
       lookupLocalStorage: LANG_STORAGE_KEY,
@@ -28,22 +28,11 @@ i18n
     initAsync: false, // resources are bundled: render translated on first paint
   })
 
-// Cairo, the Arabic font, is only fetched once Arabic is actually used, so
-// French and English visitors don't pay for it (it cost ~7 Lighthouse points
-// when loaded on every page).
-const ARABIC_FONT = 'https://fonts.googleapis.com/css2?family=Cairo:wght@400..900&display=swap'
-function loadArabicFont() {
-  if (document.querySelector(`link[href="${ARABIC_FONT}"]`)) return
-  const link = Object.assign(document.createElement('link'), { rel: 'stylesheet', href: ARABIC_FONT })
-  document.head.append(link)
-}
-
 // <html lang dir>: Arabic flips the whole layout to right-to-left.
 function applyDocumentLanguage(lng) {
   const lang = i18n.resolvedLanguage ?? lng
   document.documentElement.lang = lang
   document.documentElement.dir = i18n.dir(lang)
-  if (lang === 'ar') loadArabicFont()
 }
 applyDocumentLanguage(i18n.resolvedLanguage)
 i18n.on('languageChanged', applyDocumentLanguage)

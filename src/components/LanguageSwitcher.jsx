@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES } from '../i18n'
 
-// AR / FR / EN. The choice is saved to localStorage by the language detector
+// عربي / FR / EN: each language labelled in its own script. The choice is saved to localStorage by the language detector
 // (caches: ['localStorage'] in src/i18n.js).
 export default function LanguageSwitcher() {
   const { t, i18n } = useTranslation()
@@ -16,7 +16,7 @@ export default function LanguageSwitcher() {
           aria-pressed={i18n.resolvedLanguage === lng}
           onClick={() => i18n.changeLanguage(lng)}
         >
-          {lng.toUpperCase()}
+          {t(`language.short.${lng}`)}
         </button>
       ))}
     </div>

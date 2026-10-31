@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { formatPrice, productImages } from '../utils/product'
-import ProductBadge from './ProductBadge'
+import { productImages } from '../utils/product'
+import { ProductMarker, ProductPrice } from './ProductMeta'
 
 // `priority` is for the first row: lazy-loading above-the-fold images delays LCP.
 export default function ProductCard({ product, priority = false }) {
   const { t } = useTranslation()
-  const [cover, alt] = productImages(product)
+  const [cover] = productImages(product)
   return (
     <Link to={`/shop/${product.id}`} className={product.is_sold ? 'card sold' : 'card'}>
       <div className="card-media">
@@ -17,31 +17,30 @@ export default function ProductCard({ product, priority = false }) {
           fetchPriority={priority ? 'high' : 'auto'}
           decoding="async"
         />
-        {/* Second photo, crossfaded in on hover. Hidden (display: none) on touch
-            screens, where a lazy image that's never displayed is never fetched. */}
-        {alt && <img src={alt} alt="" className="card-media-alt" loading="lazy" decoding="async" />}
-        <ProductBadge product={product} />
+        <ProductMarker product={product} />
       </div>
-      <div className="card-body">
-        <h2 className="card-name">{product.name}</h2>
-        {product.size && <p className="card-size">{t('product.size', { size: product.size })}</p>}
-        <p className="card-price">{formatPrice(product.price)}</p>
-      </div>
+      <h2 className="card-name">{product.name}</h2>
+      <p className="card-line">
+        <ProductPrice product={product} />
+        {product.size && (
+          <span className="card-size">
+            <span className="visually-hidden">{t('product.sizeLabel')} </span>
+            {product.size}
+          </span>
+        )}
+      </p>
     </Link>
   )
 }
 
-// Same box as a loaded card (image, then name/size/price lines) so swapping
-// it out doesn't shift the grid.
+// Same box as a loaded card (image, then name and price lines) so swapping it
+// out doesn't shift the grid.
 export function ProductCardSkeleton() {
   return (
     <div className="card card-skeleton" aria-hidden="true">
       <div className="card-media skeleton" />
-      <div className="card-body">
-        <span className="skeleton skeleton-line" style={{ width: '80%' }} />
-        <span className="skeleton skeleton-line" style={{ width: '40%' }} />
-        <span className="skeleton skeleton-line" style={{ width: '50%' }} />
-      </div>
+      <span className="skeleton skeleton-line" style={{ width: '70%' }} />
+      <span className="skeleton skeleton-line" style={{ width: '40%' }} />
     </div>
   )
 }

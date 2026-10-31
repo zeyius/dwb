@@ -1,37 +1,74 @@
+/* dwb — see DESIGN.md for the palette, type scale and layouts.
+
+   Surfaces: every component reads the current surface's tokens (--fg, --bg,
+   --muted, --line, --focus) instead of hard-coding colours. The page is
+   charcoal; .slip / .drawer / .checkout-bar switch the tokens to paper, so
+   components inside them need no overrides (and no specificity fights). */
+
 :root {
-  /* Dark theme over the fixed logo backdrop. Text placed directly on the
-     backdrop must be --text (6:1 at worst); --muted is only for panels. */
-  --page: #1c1d21;
-  --surface: rgba(20, 20, 20, 0.85);
-  --surface-solid: #141414;
-  --text: #ffffff;
-  --muted: #a3a3a3;
-  --border: rgba(255, 255, 255, 0.14);
-  --skeleton: rgba(255, 255, 255, 0.08);
-  --accent: #ffffff;
-  --accent-text: #000000;
-  --badge: #ffffff;
-  --badge-text: #000000;
-  --radius: 0;
+  /* Palette */
+  --ink: #000000;
+  --paper: #ffffff;
+  --charcoal: #1c1d21;
+  --graphite: #3a3b41;
+  --red: #a3221b;
+
+  /* Current surface: charcoal */
+  --bg: var(--charcoal);
+  --fg: var(--paper);
+  --muted: #a6a7ad;
+  --line: var(--graphite);
+  --focus: var(--paper);
+
+  /* Type */
+  --font: 'Readex Pro', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --lh-body: 1.5;
+  --lh-head: 1.2;
+
+  /* Space and size */
   --gutter: 16px;
   --header-h: 56px;
   --tap: 44px;
-  --press: scale(0.97);
-  --fade: 180ms;
-  /* +1 in LTR, -1 in RTL: for slide animations that must follow the
-     reading direction (transforms have no logical equivalent). */
+  --max: 1280px;
+
+  /* +1 in LTR, -1 in RTL, for slide animations that follow the reading
+     direction (transforms have no logical equivalent). */
   --inline-sign: 1;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  color: var(--text);
-  /* On the root (canvas), not body: a body background would paint over the
-     z-index: -1 backdrop layers. */
-  background: var(--page);
+
+  font-family: var(--font);
+  font-size: 100%;
+  line-height: var(--lh-body);
+  color: var(--fg);
+  background: var(--bg);
   color-scheme: dark;
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
-  /* No double-tap-to-zoom wait on taps. */
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Arabic needs more room for its ascenders, descenders and dots. */
+:root:lang(ar) {
+  --lh-body: 1.75;
+  --lh-head: 1.4;
+}
+
+[dir='rtl'] {
+  --inline-sign: -1;
+}
+
+/* Paper surface: the order slip, the cart drawer and the checkout bar. */
+.slip,
+.drawer,
+.checkout-bar {
+  --bg: var(--paper);
+  --fg: var(--ink);
+  --muted: #5c5d63;
+  --line: #d4d4d8;
+  --focus: var(--ink);
+  color-scheme: light;
+  background: var(--bg);
+  color: var(--fg);
 }
 
 *,
@@ -40,56 +77,13 @@
   box-sizing: border-box;
 }
 
-/* Arabic (dir="rtl" lang="ar", set by src/i18n.js). */
-[dir='rtl'] {
-  --inline-sign: -1;
-}
-
-:root:lang(ar) {
-  font-family: 'Cairo', system-ui, sans-serif;
-}
-
-/* The tracked uppercase labels are a Latin-script style: letter-spacing pulls
-   Arabic letters apart and breaks their joining, and uppercase has no meaning
-   in Arabic (it only shouts the Latin product names mixed in). Arabic gets
-   neither; French and English keep both. */
-:root:lang(ar) * {
-  letter-spacing: 0 !important;
-  text-transform: none !important;
-}
-
-/* Icons that point along the reading direction (back arrow). */
-[dir='rtl'] .flip-rtl {
-  transform: scaleX(-1);
-}
-
 body {
   margin: 0;
+  background: var(--bg);
 }
 
-/* Lock page scroll behind the open cart drawer. */
 html:has(.drawer[open]) {
   overflow: hidden;
-}
-
-/* Site-wide backdrop: logo image, then a dark overlay. Fixed layers rather than
-   background-attachment: fixed, which iOS Safari ignores. */
-body::before,
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-}
-
-/* Mobile: contain so the circle isn't cropped on a tall screen. */
-body::before {
-  background: var(--page) url('/bg-logo.webp') center / contain no-repeat;
-}
-
-body::after {
-  background: rgba(0, 0, 0, 0.6);
 }
 
 img {
@@ -103,12 +97,34 @@ a {
 }
 
 h1,
-h2 {
+h2,
+p,
+ul,
+dl,
+dd {
   margin: 0;
 }
 
+ul {
+  padding: 0;
+  list-style: none;
+}
+
+h1,
+h2 {
+  line-height: var(--lh-head);
+  font-weight: 600;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
 :focus-visible {
-  outline: 2px solid var(--text);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
@@ -117,63 +133,41 @@ h2 {
   font-size: 0.875rem;
 }
 
-/* Press feedback on everything tappable; works on touch, unlike :hover. */
-.btn,
-.icon-btn,
-.card,
-.category,
-.thumb,
-.link-btn,
-.back-link,
-.contact-links a {
-  transition: transform 0.1s ease-out;
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
-.btn:not(:disabled):active,
-.icon-btn:active,
-.card:active,
-.category:active,
-.thumb:active,
-.link-btn:active,
-.back-link:active,
-.contact-links a:active {
-  transform: var(--press);
+/* Icons that point along the reading direction (back arrow). */
+[dir='rtl'] .flip-rtl {
+  transform: scaleX(-1);
 }
 
-/* Layout */
+/* ---------------------------------------------------------------- Layout */
+
 .app {
-  overflow-x: clip;
-  min-height: 100vh;
-  min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: clip;
 }
 
 .main {
   flex: 1;
-  /* At least a screen tall so the footer starts below the fold and isn't
-     pushed around while data loads (CLS). */
-  min-height: calc(100vh - var(--header-h));
-  min-height: calc(100dvh - var(--header-h));
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--gutter);
+  max-width: var(--max);
+  min-height: calc(100dvh - var(--header-h));
+  margin-inline: auto;
+  padding: var(--gutter) var(--gutter) 48px;
 }
 
-/* Page transition: Layout re-keys <main> per path. Opacity only, since a
-   transform would break position: sticky/fixed inside. */
-.page {
-  animation: fade-in var(--fade) ease-out;
-}
+/* ---------------------------------------------------------------- Header */
 
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-}
-
-/* Header */
 .header {
   position: sticky;
   top: 0;
@@ -183,24 +177,15 @@ h2 {
   justify-content: space-between;
   height: var(--header-h);
   padding-inline: max(var(--gutter), env(safe-area-inset-left)) max(var(--gutter), env(safe-area-inset-right));
-  background: var(--surface);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--border);
+  background: var(--ink);
 }
 
-/* 44px tap area around a 40px disc. */
 .logo {
   display: grid;
   place-items: center;
   width: var(--tap);
   height: var(--tap);
   margin-inline-start: -2px;
-  transition: transform 0.1s ease-out;
-}
-
-.logo:active {
-  transform: var(--press);
 }
 
 .logo-disc {
@@ -208,7 +193,6 @@ h2 {
   height: 40px;
   border-radius: 50%;
   overflow: hidden;
-  border: 1.5px solid var(--text);
 }
 
 /* The image has a grey margin around its white disc; zoom to crop it out. */
@@ -221,40 +205,31 @@ h2 {
 
 .header-actions {
   display: flex;
-  gap: 4px;
-  margin-inline-end: -6px; /* optically align the icon, not its tap area, with the gutter */
+  align-items: center;
+  margin-inline-end: -10px;
 }
 
-/* AR / FR / EN: 44px-tall tap targets, compact visual. */
 .lang-switch {
   display: flex;
-  align-items: center;
   margin-inline-end: 4px;
 }
 
 .lang-switch button {
-  min-width: 34px;
+  min-width: 40px;
   height: var(--tap);
-  padding: 0 4px;
+  padding: 0 6px;
   border: 0;
   background: none;
   color: var(--muted);
-  font: inherit;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: transform 0.1s ease-out, color 0.15s;
-}
-
-.lang-switch button:active {
-  transform: var(--press);
 }
 
 .lang-switch button[aria-pressed='true'] {
-  color: var(--text);
-  text-decoration: underline;
-  text-underline-offset: 4px;
+  color: var(--paper);
+  text-decoration: underline 2px var(--paper);
+  text-underline-offset: 6px;
 }
 
 .icon-btn {
@@ -265,7 +240,6 @@ h2 {
   height: var(--tap);
   padding: 0;
   border: 0;
-  border-radius: 50%;
   background: none;
   color: inherit;
   cursor: pointer;
@@ -273,15 +247,15 @@ h2 {
 
 .cart-count {
   position: absolute;
-  top: 3px;
-  inset-inline-end: 3px;
+  top: 4px;
+  inset-inline-end: 2px;
   min-width: 18px;
   height: 18px;
-  padding: 0 5px;
+  padding: 0 4px;
   border-radius: 9px;
-  background: var(--accent);
-  color: var(--accent-text);
-  font-size: 0.6875rem;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.75rem;
   font-weight: 700;
   line-height: 18px;
   text-align: center;
@@ -293,93 +267,179 @@ h2 {
 
 @keyframes bump {
   40% {
-    transform: scale(1.45);
+    transform: scale(1.4);
   }
 }
 
-/* Hero: full-bleed banner flush under the header. 100vw counts the desktop
-   scrollbar, so .app clips the overhang instead of scrolling sideways. */
+/* ---------------------------------------------------------------- Buttons */
+
+/* Filled with the surface's text colour: white on charcoal, ink on paper. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 24px;
+  border: 2px solid var(--fg);
+  background: var(--fg);
+  color: var(--bg);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.1s ease-out;
+}
+
+.btn:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--fg);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.link-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 0.9375rem;
+  text-decoration: underline 1px;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .btn:not(:disabled):hover {
+    background: transparent;
+    color: var(--fg);
+  }
+
+  .btn-outline:not(:disabled):hover {
+    background: var(--fg);
+    color: var(--bg);
+  }
+}
+
+/* ---------------------------------------------------------------- Skeleton */
+
+.skeleton {
+  background: var(--line);
+}
+
+.skeleton-line {
+  display: block;
+  height: 1em;
+}
+
+/* ---------------------------------------------------------------- Hero */
+
+/* Collapsing banner. The .hero box keeps its full height in the layout the
+   whole time, so nothing below it ever moves. What changes is .hero-frame:
+   as .hero scrolls under the header, the frame is translated down by exactly
+   the distance scrolled (so it stays pinned under the header), fades out and
+   shrinks a little, while .shop (opaque, painted above) slides up over it.
+   Its visible height therefore goes from full to 0 with the scroll, and back
+   when scrolling up. Only transform and opacity are animated.
+
+   Progress = the "exit" range of .hero's view timeline, inset by the header:
+   0 when its top reaches the header, 1 when its bottom does. */
 .hero {
-  position: relative;
-  height: 45vh;
-  height: 45svh;
-  width: 100vw;
-  margin-inline: calc(50% - 50vw);
-  margin-top: calc(-1 * var(--gutter));
-  overflow: hidden;
+  view-timeline: --hero block;
+  view-timeline-inset: var(--header-h) 0;
+}
+
+.hero-frame {
+  transform-origin: 50% 0;
+}
+
+/* The banner keeps its own ratio; the skeleton guesses a wide one. */
+.hero-frame.skeleton {
+  aspect-ratio: 8 / 3;
+}
+
+.hero-frame.skeleton .hero-img {
+  opacity: 0;
 }
 
 .hero-img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  opacity: 0;
-  transition: opacity var(--fade) ease-out;
+  height: auto;
 }
 
-.hero:not(.skeleton) .hero-img {
-  opacity: 1;
+@keyframes hero-collapse {
+  to {
+    opacity: 0;
+    transform: translateY(100%) scale(0.95);
+  }
 }
 
-.hero-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 16px;
-  padding: var(--gutter) max(var(--gutter), env(safe-area-inset-left)) calc(var(--gutter) * 2);
-  background: linear-gradient(to bottom, transparent 40%, rgba(0, 0, 0, 0.6));
-  text-align: center;
-  animation: fade-in var(--fade) ease-out;
+@media (prefers-reduced-motion: no-preference) {
+  .hero-frame {
+    will-change: transform, opacity;
+  }
+
+  @supports (animation-timeline: view()) {
+    .hero-frame {
+      animation: hero-collapse linear both;
+      animation-timeline: --hero;
+      animation-range: exit 0% exit 100%;
+    }
+  }
+
+  /* Elsewhere, Hero.jsx writes the same progress to --hero-p. */
+  @supports not (animation-timeline: view()) {
+    .hero-frame {
+      opacity: calc(1 - var(--hero-p, 0));
+      transform: translateY(calc(var(--hero-p, 0) * 100%)) scale(calc(1 - var(--hero-p, 0) * 0.05));
+    }
+  }
 }
 
-.hero-tagline {
-  margin: 0;
-  max-width: 32ch;
-  font-size: clamp(1.375rem, 5vw, 2.5rem);
-  font-weight: 900;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
-  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
-}
+/* ---------------------------------------------------------------- Shop */
 
-/* Mobile: the category bar sits flush under the hero instead of the header. */
-.hero + .shop .categories {
-  margin-top: 0;
-}
-
-/* Land the grid below the sticky header and (mobile) category bar. */
-.shop-content {
-  scroll-margin-top: calc(var(--header-h) + 57px + var(--gutter));
-}
-
-/* Shop */
 .shop {
+  /* Above the pinned hero, and opaque so the hero never shows through the
+     gaps of the grid. */
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--gutter);
+  padding-top: 16px;
+  background: var(--bg);
 }
 
-/* Mobile: full-bleed pill bar pinned under the header. */
+/* Mobile: a row of text tabs that scrolls sideways, sticky under the header. */
 .categories {
   position: sticky;
   top: var(--header-h);
-  z-index: 9;
-  margin: calc(-1 * var(--gutter)) calc(-1 * var(--gutter)) 0;
-  padding-block: 6px;
+  z-index: 5;
+  margin-inline: calc(-1 * var(--gutter));
+  background: var(--bg);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s;
   overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x proximity;
-  scroll-padding-inline: var(--gutter);
   scrollbar-width: none;
-  background: var(--surface);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--border);
+}
+
+/* Header + tabs are now one pinned block: draw its bottom edge. */
+:root[data-hero-gone] .categories {
+  border-bottom-color: var(--line);
 }
 
 .categories::-webkit-scrollbar {
@@ -388,88 +448,62 @@ h2 {
 
 .categories ul {
   display: flex;
-  gap: 8px;
   width: max-content;
-  margin: 0;
-  padding: 0 var(--gutter);
-  list-style: none;
-}
-
-.categories li {
-  scroll-snap-align: start;
+  padding-inline: calc(var(--gutter) - 10px);
 }
 
 .category {
   display: flex;
   align-items: center;
-  min-height: var(--tap);
-  padding: 0 16px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  min-height: 48px;
+  padding: 0 10px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--muted);
+  font-size: 0.9375rem;
+  font-weight: 500;
   white-space: nowrap;
-  background: var(--surface);
+  cursor: pointer;
 }
 
 .category.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-text);
+  color: var(--fg);
+  border-bottom-color: var(--fg);
+}
+
+.category-error {
+  color: var(--fg);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .shop-content {
+  min-width: 0;
   flex: 1;
-  min-width: 0;
 }
 
-.shop-heading {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: var(--gutter);
+.shop-count {
+  padding-block: 12px;
 }
 
-/* Sits on the bare backdrop, so full white rather than --muted. */
-.shop-heading .muted {
-  flex: none;
-  color: var(--text);
-}
-
-.shop-heading h1 {
-  min-width: 0;
-  font-size: 1.75rem;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
-  overflow-wrap: anywhere;
-}
-
-/* minmax(0, …) so a long unbroken name can't widen a column past the screen. */
+/* Edge to edge on mobile: two photos, 2px apart, no side margins. */
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 24px 2px;
+  margin-inline: calc(-1 * var(--gutter));
 }
 
 .card {
-  display: flex;
-  flex-direction: column;
+  display: block;
   min-width: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
 }
 
-.card-media,
-.carousel {
+.card-media {
   position: relative;
   aspect-ratio: 4 / 5;
-  overflow: hidden;
-  border-radius: var(--radius);
-  background: var(--border);
+  background: var(--line);
 }
 
 .card-media img {
@@ -478,184 +512,131 @@ h2 {
   object-fit: cover;
 }
 
-.card-media-alt {
-  position: absolute;
-  inset: 0;
-  display: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.badge {
-  position: absolute;
-  top: 8px;
-  inset-inline-start: 8px;
-  padding: 3px 8px;
-  background: var(--badge);
-  color: var(--badge-text);
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-}
-
-.card-body {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 10px 12px 12px;
-  line-height: 1.3;
+/* Text under the photo; inset on mobile, where the photos run edge to edge. */
+.card-name,
+.card-line {
+  padding-inline: 12px;
+  font-size: 0.9375rem;
 }
 
 .card-name {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  margin-top: 10px;
   overflow: hidden;
-  /* Always two lines tall, so cards (and their skeletons) share one height. */
-  min-height: 2.6em;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  overflow-wrap: anywhere;
+  font-weight: 400;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 2px;
 }
 
 .card-size {
-  margin: 0;
-  color: var(--muted);
+  margin-inline-start: auto;
   font-size: 0.8125rem;
+  opacity: 0.6;
 }
 
-.card-price {
-  margin: 0;
-  font-weight: 700;
+/* Sold: the photo steps back; the marker and struck price say why. */
+.card.sold .card-media img,
+.detail.sold .carousel-slide img {
+  opacity: 0.5;
+  filter: grayscale(1);
 }
 
-/* Skeletons: same boxes as the real content, so nothing moves on load. */
-.skeleton {
-  position: relative;
-  overflow: hidden;
-  background: var(--skeleton);
+.card-skeleton .skeleton-line {
+  margin: 10px 12px 0;
 }
 
-.skeleton::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
-  transform: translateX(calc(-100% * var(--inline-sign)));
-  animation: shimmer 1.4s infinite;
-}
-
-@keyframes shimmer {
-  to {
-    transform: translateX(calc(100% * var(--inline-sign)));
-  }
-}
-
-.skeleton-line {
-  display: block;
-  height: 1em;
-  margin-block: 0.15em;
-}
-
-/* Heights match .card-name (2 lines) / .card-size / .card-price at line-height 1.3. */
-.card-skeleton .skeleton-line:nth-child(1) {
-  height: 2.4375rem;
-  margin: 0;
-}
-.card-skeleton .skeleton-line:nth-child(2) {
-  height: 1.05rem;
-  margin: 0;
-}
-.card-skeleton .skeleton-line:nth-child(3) {
-  height: 1.3rem;
-  margin: 0;
+.card-skeleton .skeleton-line + .skeleton-line {
+  margin-top: 6px;
 }
 
 .show-more {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  margin-top: 28px;
-}
-
-.show-more p {
-  margin: 0;
-  color: var(--text);
-}
-
-.empty {
-  color: var(--text);
-  padding: 40px 0;
+  gap: 12px;
+  margin-top: 40px;
   text-align: center;
 }
 
-/* Buttons */
-.btn {
+/* ---------------------------------------------------------------- Marker, price */
+
+/* "New" / "Sold" on the photo's top-start corner. */
+.marker {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  padding: 4px 8px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+/* "New" is inverted (and a little bolder) so it reads apart from "Sold". */
+.marker-new {
+  padding: 5px 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* First appearance only (see ProductMarker): in from the start side. */
+@media (prefers-reduced-motion: no-preference) {
+  .marker-new.enter {
+    animation: marker-in 250ms ease-out both;
+  }
+}
+
+@keyframes marker-in {
+  from {
+    opacity: 0;
+    transform: translateX(calc(-4px * var(--inline-sign)));
+  }
+}
+
+.price {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 48px;
-  padding: 0 24px;
-  border: 1px solid var(--accent);
-  border-radius: var(--radius);
-  background: var(--accent);
-  color: var(--accent-text);
-  font: inherit;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 8px;
+  min-width: 0;
+}
+
+.price-now {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.price-old {
   font-size: 0.8125rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: transform 0.1s ease-out, background 0.15s, color 0.15s;
+  opacity: 0.5;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
-.btn:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.btn-outline {
-  background: transparent;
-  color: var(--accent);
-}
-
-.btn-block {
-  width: 100%;
-}
-
-.link-btn {
-  min-height: var(--tap);
-  padding: 0 4px;
-  border: 0;
-  background: none;
-  color: var(--muted);
-  font: inherit;
-  font-size: 0.875rem;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-/* Product detail. Mobile: edge-to-edge carousel, text below, buy bar pinned
-   to the bottom of the screen. */
-.detail {
-  margin: calc(-1 * var(--gutter)) calc(-1 * var(--gutter)) 0;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-}
+/* ---------------------------------------------------------------- Product */
 
 .back-link {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-height: var(--tap);
-  padding-inline: var(--gutter);
+  margin-bottom: 8px;
   color: var(--muted);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
 }
 
 .detail-layout {
   display: grid;
+  gap: 20px;
 }
 
 .gallery {
@@ -663,6 +644,13 @@ h2 {
   flex-direction: column;
   gap: 10px;
   min-width: 0;
+  margin-inline: calc(-1 * var(--gutter));
+}
+
+.carousel {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  background: var(--line);
 }
 
 .carousel-track {
@@ -694,27 +682,25 @@ h2 {
   object-fit: cover;
 }
 
+/* Position marks: short bars, the current one long and white. */
 .carousel-dots {
   display: flex;
   justify-content: center;
   gap: 6px;
-  padding-block: 2px;
 }
 
 .dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.5);
-  transition: width 0.2s, background 0.2s;
+  width: 12px;
+  height: 3px;
+  background: var(--line);
+  transition: width 0.2s, background-color 0.2s;
 }
 
 .dot.active {
-  width: 16px;
-  background: #fff;
+  width: 28px;
+  background: var(--fg);
 }
 
-/* Thumbnails are a pointer affordance; on touch, swipe + dots do the job. */
 .thumbs {
   display: none;
 }
@@ -722,116 +708,186 @@ h2 {
 .detail-info {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: var(--gutter) var(--gutter) 0;
+  gap: 20px;
+  min-width: 0;
 }
 
-.detail-info h1 {
-  font-size: 1.75rem;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
-  line-height: 1.1;
+.detail-head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.detail-head h1 {
+  font-size: 1.375rem;
   overflow-wrap: anywhere;
 }
 
+.detail-price {
+  font-size: 1.25rem;
+}
+
+.detail-price .price-old {
+  font-size: 0.9375rem;
+}
+
 .detail-size {
-  margin: 0;
   color: var(--muted);
 }
 
-.detail-price {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-}
-
 .detail-meta {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 6px 16px;
-  margin: 8px 0 0;
+  display: flex;
+  gap: 8px;
+  font-size: 0.9375rem;
 }
 
 .detail-meta dt {
   color: var(--muted);
 }
 
-.detail-meta dd {
-  margin: 0;
-}
-
 .detail-description {
-  margin: 8px 0 0;
-  line-height: 1.6;
+  max-width: 60ch;
   white-space: pre-line;
 }
 
+/* Mobile: pinned to the bottom of the screen. */
 .buy-bar {
   position: sticky;
   bottom: 0;
   z-index: 5;
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin: 16px calc(-1 * var(--gutter)) 0;
+  gap: 12px;
+  margin-inline: calc(-1 * var(--gutter));
   padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom));
-  background: var(--surface-solid);
-  border-top: 1px solid var(--border);
-}
-
-.buy-bar-price {
-  flex: none;
-  font-size: 1.125rem;
-  font-weight: 800;
+  background: var(--ink);
 }
 
 .buy-bar .btn {
   flex: 1;
 }
 
-/* Cart (page and drawer) */
-.cart h1,
-.page-message h1 {
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
+.buy-bar-note {
+  flex: 1;
+  font-size: 0.9375rem;
 }
+
+.buy-bar-note.added {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.buy-bar-note.added svg {
+  flex: none;
+}
+
+/* The note grows in when the piece goes into the cart. */
+.buy-bar-note.added {
+  animation: note-in 0.25s ease-out;
+}
+
+@keyframes note-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* Order by message (product page) */
+.order-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.order-contact h2 {
+  font-size: 1rem;
+}
+
+.order-contact .contact-links {
+  margin-top: 8px;
+}
+
+.contact-links {
+  display: flex;
+  flex-direction: column;
+}
+
+.contact-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--tap);
+}
+
+.contact-links svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+
+@media (hover: hover) {
+  .contact-links a:hover,
+  .back-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+}
+
+/* ---------------------------------------------------------------- Messages */
+
+.status,
+.page-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 40ch;
+  margin-inline: auto;
+  padding: 64px 0;
+  text-align: center;
+}
+
+.page-message h1 {
+  font-size: 1.5rem;
+}
+
+/* ---------------------------------------------------------------- Cart */
 
 .cart {
-  padding: var(--gutter);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  max-width: 640px;
+  margin-inline: auto;
 }
 
-.cart h1 {
+.cart > h1 {
   margin-bottom: 8px;
+  font-size: 1.75rem;
 }
 
 .cart-empty {
-  margin: 0;
-  font-weight: 700;
-}
-
-.cart-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
 .cart-item {
-  display: grid;
-  grid-template-columns: 64px minmax(0, 1fr) auto;
+  display: flex;
+  align-items: flex-start;
   gap: 12px;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border);
+  padding-block: 16px;
+  border-bottom: 1px solid var(--line);
 }
 
 .cart-thumb {
+  flex: none;
+  width: 72px;
   aspect-ratio: 4 / 5;
-  overflow: hidden;
-  background: var(--border);
+  background: var(--line);
 }
 
 .cart-thumb img {
@@ -842,6 +898,7 @@ h2 {
 
 .cart-item-info {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
@@ -849,15 +906,19 @@ h2 {
 
 .cart-item-name {
   font-weight: 500;
-  overflow-wrap: anywhere;
+}
+
+.cart-item-price {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .cart-summary {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  margin-top: 16px;
+  gap: 12px;
+  padding-top: 16px;
 }
 
 .cart-total {
@@ -867,16 +928,9 @@ h2 {
   font-size: 1.125rem;
 }
 
-.page-message {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 60px 0;
-  text-align: center;
-}
+/* ---------------------------------------------------------------- Drawer */
 
-/* Cart drawer: bottom sheet on mobile. */
+/* Paper bottom sheet on mobile, side panel from tablet up. */
 .drawer {
   inset: auto 0 0;
   width: 100%;
@@ -886,11 +940,8 @@ h2 {
   margin: 0;
   padding: 0;
   border: 0;
-  border-radius: 16px 16px 0 0;
-  background: var(--surface-solid);
-  color: var(--text);
   overflow: hidden;
-  animation: sheet-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: sheet-in 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .drawer.closing {
@@ -898,8 +949,8 @@ h2 {
 }
 
 .drawer::backdrop {
-  background: rgba(0, 0, 0, 0.6);
-  animation: fade-in 0.22s ease-out;
+  background: rgb(0 0 0 / 0.6);
+  animation: fade-in 0.25s ease-out;
 }
 
 .drawer.closing::backdrop {
@@ -918,6 +969,24 @@ h2 {
   }
 }
 
+@keyframes panel-in {
+  from {
+    transform: translateX(calc(100% * var(--inline-sign)));
+  }
+}
+
+@keyframes panel-out {
+  to {
+    transform: translateX(calc(100% * var(--inline-sign)));
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
 @keyframes fade-out {
   to {
     opacity: 0;
@@ -932,11 +1001,10 @@ h2 {
 
 .drawer-handle {
   flex: none;
-  width: 36px;
+  width: 40px;
   height: 4px;
   margin: 8px auto 0;
-  border-radius: 2px;
-  background: var(--border);
+  background: var(--line);
 }
 
 .drawer-header {
@@ -944,16 +1012,13 @@ h2 {
   flex: none;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 6px 4px var(--gutter);
-  border-bottom: 1px solid var(--border);
+  padding-block: 4px;
+  padding-inline: var(--gutter) 6px;
+  border-bottom: 1px solid var(--line);
 }
 
 .drawer-header h2 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 900;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 1.125rem;
 }
 
 .drawer-body {
@@ -966,269 +1031,154 @@ h2 {
   padding: 40px 0 24px;
 }
 
-/* Footer: stacked and centred at every size. */
+/* ---------------------------------------------------------------- Footer */
+
+/* The logo photo lives here and only here: the disc sits above the text,
+   and the photo's edges fade into the page so its square doesn't show. */
 .footer {
+  --disc: 220px;
+  position: relative;
+  isolation: isolate;
+  margin-top: 48px;
+  color: var(--paper);
+  border-top: 1px solid var(--line);
+}
+
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  left: calc(50% - var(--disc) / 2);
+  z-index: -1;
+  width: var(--disc);
+  aspect-ratio: 1;
+  background: url('/bg-logo.webp') center / cover no-repeat;
+  mask: radial-gradient(closest-side, #000 72%, transparent);
+}
+
+.footer-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
-  padding: 40px var(--gutter) calc(28px + env(safe-area-inset-bottom));
-  background: #000;
-  color: #fff;
+  gap: 16px;
+  padding: calc(var(--disc) + 32px) var(--gutter) calc(32px + env(safe-area-inset-bottom));
   text-align: center;
-  font-size: 0.875rem;
-}
-
-.footer p {
-  margin: 0;
-}
-
-.footer-logo {
-  width: 72px;
-  height: 72px;
 }
 
 .footer-tagline {
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 1.125rem;
+  font-weight: 500;
 }
 
-/* One row: phone | email | Instagram. The separators are pseudo-elements, so
-   they disappear along with an item hidden for having no value. */
-.footer .footer-contact {
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 12px 24px;
-}
-
-.footer-contact li {
-  display: flex;
+.footer-contact {
   align-items: center;
 }
 
-.footer-contact a {
-  white-space: nowrap;
-}
-
-.footer-contact li + li::before {
-  content: '';
-  display: none;
-  width: 1px;
-  height: 16px;
-  margin-inline-end: 32px;
-  background: rgba(255, 255, 255, 0.3);
-}
-
-/* Wide: one row with separators centred in the 32px gaps. 720px rather than
-   600px because phone + email + Instagram + gaps need ~620px of content
-   width, which a 600px screen minus gutters doesn't have. Wrapping stays on
-   so an unusually long email can't cause horizontal scroll. */
-@media (min-width: 720px) {
-  .footer .footer-contact {
-    gap: 12px 32px;
-  }
-
-  .footer-contact li + li::before {
-    display: block;
-  }
-}
-
-.footer .footer-copy {
-  margin-top: 10px;
-  color: #8a8a8a;
-  font-size: 0.75rem;
-}
-
-/* Supabase-backed states */
-.status {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 60px 0;
-  color: var(--text);
-  text-align: center;
-}
-
-.status p {
-  margin: 0;
-}
-
-.category-error {
-  font: inherit;
-  font-size: 0.75rem;
-  cursor: pointer;
+.footer-copy {
   color: var(--muted);
-  border-style: dashed;
-}
-
-.badge-sold {
-  background: #000;
-  color: #fff;
-  outline: 1.5px solid #fff;
-}
-
-.sold .card-media img,
-.sold .carousel-slide img {
-  filter: grayscale(1);
-  opacity: 0.5;
-}
-
-.card.sold .card-body,
-.card.sold .card-size {
-  color: var(--muted);
-}
-
-.card.sold .card-price {
-  text-decoration: line-through;
-}
-
-/* Contact links (footer, order info) */
-.contact-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 20px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.contact-links a {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: var(--tap);
-  overflow-wrap: anywhere;
-}
-
-.contact-links svg {
-  flex: none;
-  width: 18px;
-  height: 18px;
-}
-
-.order-contact {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 8px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
-}
-
-.order-contact h2 {
-  margin: 0;
   font-size: 0.8125rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
 }
 
-.order-contact p {
-  margin: 0;
-}
+/* ---------------------------------------------------------------- Checkout */
 
-.order-contact .contact-links {
-  flex-direction: column;
-}
-
-.cart .order-contact,
-.drawer .order-contact {
-  margin-top: 24px;
-}
-
-/* Checkout. Logical properties throughout (inline/block, start/end) so the
-   layout mirrors correctly under dir="rtl". */
-.checkout {
-  --danger: #ff8a80;
-  display: flex;
-  flex-direction: column;
-  gap: var(--gutter);
-}
-
-.checkout h1 {
+.checkout > h1 {
+  margin-bottom: 16px;
   font-size: 1.75rem;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
 }
 
 .checkout-banner {
-  margin: 0;
-  padding: 12px 14px;
-  border: 1px solid var(--danger);
-  border-inline-start-width: 4px;
-  background: var(--surface-solid);
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: var(--paper);
+  color: var(--red);
+  border-inline-start: 4px solid var(--red);
+  font-weight: 500;
 }
 
+/* The order slip: dashed tear lines between the numbered steps. */
 .checkout-sections {
-  display: flex;
-  flex-direction: column;
-  gap: var(--gutter);
-  min-width: 0;
+  padding-inline: var(--gutter);
+  margin-inline: calc(-1 * var(--gutter));
 }
 
 .checkout-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
   min-width: 0;
   margin: 0;
-  padding: var(--gutter);
-  border: 1px solid var(--border);
-  background: var(--surface);
+  padding: 24px 0;
+  border: 0;
+  border-bottom: 2px dashed var(--line);
+}
+
+.checkout-section:last-child {
+  border-bottom: 0;
 }
 
 .checkout-section legend {
-  float: inline-start; /* keeps the legend inside the panel's padding */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  float: inline-start; /* lets the legend sit inside the fieldset's padding */
   width: 100%;
+  margin-bottom: 16px;
   padding: 0;
-  font-size: 0.8125rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: var(--lh-head);
+}
+
+.checkout-section legend + * {
+  clear: both;
+}
+
+.step-num {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--fg);
+  color: var(--bg);
+  font-size: 0.9375rem;
+  font-weight: 600;
 }
 
 .field {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  min-width: 0;
+  margin-bottom: 18px;
+}
+
+.field:last-child {
+  margin-bottom: 0;
 }
 
 .field label,
 .field-label {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.9375rem;
+  font-weight: 500;
 }
 
-.field input,
+.field input:not([type='radio']),
 .field select {
   width: 100%;
-  min-height: 48px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface-solid);
-  color: var(--text);
-  /* 16px: anything smaller makes iOS Safari zoom in on focus. */
-  font: inherit;
-  font-size: 1rem;
+  min-height: 52px;
+  padding: 0 14px;
+  border: 1.5px solid #8e8f95;
+  border-radius: 0;
+  background: var(--bg);
+  font-size: 1rem; /* 16px: iOS doesn't zoom in on focus */
 }
 
 .field input::placeholder {
-  color: #8a8a8a;
+  color: #6e6f75;
 }
 
 .field select {
   appearance: none;
   padding-inline-end: 40px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
+  background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23000' stroke-width='2'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E") no-repeat right 14px center;
 }
 
 [dir='rtl'] .field select {
@@ -1236,170 +1186,129 @@ h2 {
 }
 
 .field select:disabled {
-  opacity: 0.5;
+  color: var(--muted);
+  border-style: dashed;
+}
+
+.field input:not([type='radio']):focus-visible,
+.field select:focus-visible {
+  outline-offset: 0;
 }
 
 .field [aria-invalid='true'] {
-  border-color: var(--danger);
-}
-
-.field-hint,
-.field-error {
-  margin: 0;
-  font-size: 0.8125rem;
+  border-color: var(--red);
+  border-width: 2px;
+  outline-color: var(--red);
 }
 
 .field-hint {
   color: var(--muted);
+  font-size: 0.875rem;
 }
 
 .field-error {
-  color: var(--danger);
+  color: var(--red);
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
-.choices {
-  display: grid;
-  gap: 8px;
+/* Radio rows (delivery type, payment method). The native radio stays in
+   place for delivery; payment hides it and shows a check instead. */
+.choices,
+.pay-methods {
+  display: flex;
+  flex-direction: column;
+  border: 1.5px solid #8e8f95;
 }
 
-.field .choice {
-  font-size: 1rem;
-  font-weight: 400;
-}
-
-.choice {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+.choice,
+.pay-method {
+  position: relative;
+  display: flex;
   align-items: center;
   gap: 12px;
   min-height: 60px;
-  padding: 10px 14px;
-  border: 1px solid var(--border);
-  background: var(--surface-solid);
+  padding-block: 10px;
+  padding-inline: 10px 14px;
   cursor: pointer;
-  transition: transform 0.1s ease-out, border-color 0.15s;
 }
 
-.choice:active:not(.disabled) {
-  transform: var(--press);
+.choice + .choice,
+.pay-method + .pay-method {
+  border-top: 1px solid var(--line);
 }
 
-.choice.selected {
-  border-color: var(--text);
+.choice.selected,
+.pay-method.selected {
+  border-inline-start-color: var(--fg);
 }
 
 .choice.disabled {
-  opacity: 0.5;
+  color: var(--muted);
   cursor: default;
 }
 
-.choice:has(input:focus-visible) {
-  outline: 2px solid var(--text);
-  outline-offset: 2px;
+.choice:has(input:focus-visible),
+.pay-method:has(input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
 }
 
 .choice input {
+  flex: none;
   width: 20px;
   height: 20px;
   margin: 0;
-  accent-color: var(--accent);
+  accent-color: var(--ink);
 }
 
-.choice-text {
+.choice-text,
+.pay-method-text {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: 2px;
+  min-width: 0;
 }
 
-.choice-label {
-  font-weight: 700;
-}
-
-.choice-text .muted {
-  font-size: 0.8125rem;
+.choice-label,
+.pay-method-label {
+  font-weight: 500;
 }
 
 .choice-price {
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .badge-inline {
-  display: inline-block;
-  padding: 3px 8px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  color: var(--text);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  color: var(--muted);
+  font-size: 0.8125rem;
   white-space: nowrap;
 }
 
-/* Payment method cards. Selected: 2px accent outline (1px border + 1px inset
-   shadow, so nothing shifts) and a check mark. */
-.pay-methods {
+.pay-method-icon {
   display: grid;
-  gap: 8px;
+  flex: none;
+  color: var(--muted);
 }
 
-.field .pay-method {
-  display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) 20px;
-  align-items: center;
-  gap: 12px;
-  min-height: 56px;
-  padding: 8px 14px;
-  border: 1px solid var(--border);
-  background: var(--surface-solid);
-  font-size: 1rem;
-  font-weight: 400;
-  cursor: pointer;
-  transition: transform 0.1s ease-out, border-color 0.15s;
+.pay-method.selected .pay-method-icon {
+  color: var(--fg);
 }
 
-.pay-method:active {
-  transform: var(--press);
-}
-
-.pay-method.selected {
-  border-color: var(--accent);
-  box-shadow: inset 0 0 0 1px var(--accent);
-}
-
-.pay-method:has(input:focus-visible) {
-  outline: 2px solid var(--text);
-  outline-offset: 2px;
-}
-
-.pay-method-icon,
 .pay-method-check {
   display: grid;
-  place-items: center;
-}
-
-.pay-method-text {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
-
-.pay-method-label {
-  font-weight: 700;
-}
-
-.pay-method-text .muted {
-  font-size: 0.8125rem;
+  flex: none;
+  width: 20px;
 }
 
 .checkout-secure {
-  margin: 0;
+  margin-top: 12px;
 }
 
-/* Mobile: summary + pay button pinned to the bottom of the screen; the
-   summary opens upward from its toggle. */
+/* Mobile: summary + confirm button pinned to the bottom of the screen; the
+   summary opens upward from its toggle. Paper, like the slip above it. */
 .checkout-bar {
   position: sticky;
   bottom: 0;
@@ -1407,10 +1316,9 @@ h2 {
   display: flex;
   flex-direction: column;
   margin-inline: calc(-1 * var(--gutter));
-  margin-bottom: calc(-1 * var(--gutter));
+  margin-bottom: -48px;
   padding: 0 var(--gutter) calc(12px + env(safe-area-inset-bottom));
-  background: var(--surface-solid);
-  border-top: 1px solid var(--border);
+  border-top: 2px solid var(--ink);
 }
 
 .summary-toggle {
@@ -1421,9 +1329,7 @@ h2 {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--text);
-  font: inherit;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -1446,7 +1352,6 @@ h2 {
 
 .checkout-bar.open .summary-details {
   display: block;
-  animation: fade-in var(--fade) ease-out;
 }
 
 .summary-title {
@@ -1457,57 +1362,53 @@ h2 {
   clip-path: inset(50%);
 }
 
-.summary-lines {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
 .summary-line {
-  display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) auto;
+  display: flex;
+  align-items: flex-start;
   gap: 12px;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border);
+  padding-block: 10px;
+  border-bottom: 1px solid var(--line);
 }
 
 .summary-thumb {
+  flex: none;
   width: 48px;
   height: 60px;
   object-fit: cover;
-  background: var(--border);
-}
-
-.summary-line.sold .summary-thumb {
-  filter: grayscale(1);
-  opacity: 0.5;
+  background: var(--line);
 }
 
 .summary-line-info {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
   min-width: 0;
 }
 
 .summary-line-name {
-  overflow-wrap: anywhere;
+  font-weight: 500;
+}
+
+.summary-line.sold .summary-line-name {
+  text-decoration: line-through;
+}
+
+.summary-line.sold .badge-inline {
+  color: var(--red);
+  font-weight: 600;
 }
 
 .summary-line-end {
   display: flex;
   flex-direction: column;
-  align-items: end;
+  align-items: flex-end;
   gap: 4px;
-  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .stepper {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  border: 1px solid var(--border);
 }
 
 .stepper button {
@@ -1518,354 +1419,258 @@ h2 {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--text);
-  font: inherit;
-  font-size: 1.125rem;
   cursor: pointer;
-  transition: transform 0.1s ease-out;
-}
-
-.stepper button:active:not(:disabled) {
-  transform: var(--press);
 }
 
 .stepper button:disabled {
-  opacity: 0.35;
+  color: var(--muted);
   cursor: default;
 }
 
 .stepper span {
-  min-width: 20px;
+  min-width: 16px;
   text-align: center;
-  font-weight: 700;
 }
 
 .summary-totals {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin: 12px 0 0;
+  padding-top: 12px;
 }
 
 .summary-totals div {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  gap: 12px;
 }
 
 .summary-totals dd {
-  margin: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .summary-total {
   padding-top: 6px;
-  border-top: 1px solid var(--border);
   font-size: 1.125rem;
-  font-weight: 800;
-}
-
-.pay-btn {
-  min-height: 48px;
-}
-
-.cart-summary .btn {
-  margin-top: 12px;
-}
-
-.checkout-result p {
-  max-width: 34em;
-  margin: 0;
-  line-height: 1.5;
-}
-
-.order-ref {
   font-weight: 700;
 }
 
-.result-summary {
+.pay-btn {
+  justify-content: space-between;
+}
+
+.pay-btn-total {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------- Result */
+
+.checkout-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 560px;
+  margin-inline: auto;
+}
+
+.result-slip {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   width: 100%;
-  max-width: 420px;
-  padding: var(--gutter);
-  border: 1px solid var(--border);
-  background: var(--surface);
-  text-align: start;
+  margin-bottom: 12px;
+  padding: 32px 20px 24px;
+}
+
+.result-slip h1 {
+  max-width: calc(100% - 110px);
+  font-size: 1.75rem;
+}
+
+.order-ref {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The slip gets stamped: ink, double border, thumped down once. */
+.result-stamp {
+  position: absolute;
+  top: 24px;
+  inset-inline-end: 16px;
+  padding: 2px 10px;
+  border: 4px double var(--ink);
+  font-size: 1.125rem;
+  font-weight: 700;
+  transform: rotate(-12deg);
+  animation: stamp 0.35s cubic-bezier(0.3, 1.4, 0.5, 1) 0.2s both;
+}
+
+@keyframes stamp {
+  from {
+    opacity: 0;
+    transform: rotate(-12deg) scale(1.8);
+  }
+}
+
+.result-summary {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 2px dashed var(--line);
 }
 
 .result-summary h2 {
-  margin: 0 0 8px;
-  font-size: 0.8125rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.result-summary ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  margin-bottom: 8px;
+  font-size: 1rem;
 }
 
 .result-summary li,
 .result-summary dl div {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
+  padding-block: 6px;
 }
 
-.result-summary li {
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.result-summary li > span:last-child,
-.result-summary dd {
-  flex: none;
-  font-weight: 700;
-}
-
-.result-summary dl {
+.result-item {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin: 12px 0 0;
 }
 
 .result-summary dd {
-  margin: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .result-summary-total {
-  padding-top: 6px;
-  border-top: 1px solid var(--border);
   font-size: 1.125rem;
-  font-weight: 800;
+  font-weight: 700;
+  border-top: 1px solid var(--line);
+  margin-top: 6px;
+  padding-top: 10px !important;
 }
 
 .checkout-result-help {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 4px;
-  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 2px dashed var(--line);
 }
 
-.checkout-result-help .contact-links {
-  flex-direction: column;
-  align-items: center;
-}
+/* ---------------------------------------------------------------- Tablet + */
 
-/* !important: this utility must win over element styles like
-   `.field input { width: 100% }`, or a hidden control still takes up space. */
-.visually-hidden {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  min-height: 0 !important;
-  margin: -1px !important;
-  padding: 0 !important;
-  border: 0 !important;
-  overflow: hidden !important;
-  clip-path: inset(50%) !important;
-  white-space: nowrap !important;
-}
-
-/* Wide: form left, summary as a sticky side panel that's always open. */
-@media (min-width: 900px) {
-  .checkout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 380px;
-    align-items: start;
-    column-gap: 32px;
-  }
-
-  .checkout h1,
-  .checkout-banner {
-    grid-column: 1 / -1;
-  }
-
-  .checkout-bar {
-    position: sticky;
-    top: calc(var(--header-h) + 24px);
-    bottom: auto;
-    gap: 12px;
-    margin: 0;
-    padding: var(--gutter);
-    border: 1px solid var(--border);
-  }
-
-  .summary-toggle {
-    display: none;
-  }
-
-  .summary-details,
-  .checkout-bar.open .summary-details {
-    display: block;
-    max-height: none;
-    overflow: visible;
-    padding: 0;
-    animation: none;
-  }
-
-  .summary-title {
-    position: static;
-    width: auto;
-    height: auto;
-    clip-path: none;
-    margin: 0 0 4px;
-    font-size: 0.8125rem;
-    font-weight: 800;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-}
-
-/* Hover only where there's a real pointer, so taps don't leave sticky states. */
-@media (hover: hover) {
-  .icon-btn:hover {
-    background: var(--border);
-  }
-
-  .card {
-    transition: transform 0.1s ease-out, border-color 0.15s;
-  }
-
-  .card:hover {
-    border-color: var(--text);
-  }
-
-  .card-media-alt {
-    display: block;
-  }
-
-  .card:hover .card-media-alt {
-    opacity: 1;
-  }
-
-  .card-media img {
-    transition: transform 0.3s;
-  }
-
-  .card:hover .card-media img {
-    transform: scale(1.03);
-  }
-
-  .btn:not(:disabled):hover {
-    background: var(--accent-text);
-    color: var(--accent);
-  }
-
-  .btn-outline:not(:disabled):hover {
-    background: var(--accent);
-    color: var(--accent-text);
-  }
-
-  .contact-links a:hover {
-    text-decoration: underline;
-  }
-}
-
-/* Tablet and up */
 @media (min-width: 768px) {
   :root {
     --gutter: 24px;
-  }
-
-  body::before {
-    background-size: cover;
   }
 
   .shop {
     flex-direction: row;
     align-items: flex-start;
     gap: 40px;
+    padding-top: 24px;
   }
 
-  .hero {
-    height: 60vh;
-    height: 60svh;
-    margin-bottom: var(--gutter);
+  /* Tabs are a sidebar here, so the pinned block is the header alone. */
+  .header {
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.15s;
   }
 
-  .shop-content {
-    scroll-margin-top: calc(var(--header-h) + var(--gutter));
+  :root[data-hero-gone] .header {
+    border-bottom-color: var(--line);
   }
 
+  /* A plain list with a white bar on the active category. */
   .categories {
     top: calc(var(--header-h) + 24px);
     flex: 0 0 180px;
     margin: 0;
-    padding: 8px;
+    padding-top: 0;
+    border: 0;
     overflow: visible;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    border: 1px solid var(--border);
   }
 
   .categories ul {
     flex-direction: column;
-    gap: 2px;
     width: auto;
     padding: 0;
   }
 
-  .category,
-  .category.active {
-    padding: 0 12px;
-    border: 0;
-    border-radius: 0;
-    background: none;
-    color: var(--muted);
-  }
-
-  .category:hover {
-    color: var(--text);
+  .category {
+    min-height: var(--tap);
+    padding-inline: 14px 0;
+    border-bottom: 0;
+    border-inline-start: 3px solid transparent;
   }
 
   .category.active {
-    color: var(--text);
-    border-inline-start: 3px solid var(--text);
-    padding-inline-start: 9px;
+    border-inline-start-color: var(--fg);
   }
+
 
   .grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 20px;
+    gap: 44px 20px;
+    margin-inline: 0;
   }
 
-  .detail {
-    margin: 0;
-    padding: var(--gutter);
-    border: 1px solid var(--border);
-  }
-
-  .back-link {
+  .card-name,
+  .card-line {
     padding-inline: 0;
-    margin-bottom: 8px;
   }
 
+  @media (hover: hover) {
+    .category:hover {
+      color: var(--fg);
+    }
+  }
+
+  /* Product: photos and info side by side; thumbnails in a column. */
   .detail-layout {
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: 48px;
     align-items: start;
+  }
+
+  .gallery {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr);
+    grid-template-areas: 'thumbs main';
+    gap: 12px;
+    margin-inline: 0;
+  }
+
+  .carousel {
+    grid-area: main;
+  }
+
+  .carousel-dots {
+    display: none;
   }
 
   .thumbs {
     display: flex;
+    flex-direction: column;
     gap: 8px;
-    overflow-x: auto;
+    grid-area: thumbs;
   }
 
   .thumb {
-    flex: 0 0 64px;
     aspect-ratio: 4 / 5;
     padding: 0;
-    border: 1.5px solid transparent;
-    background: var(--border);
+    border: 0;
+    background: var(--line);
+    opacity: 0.55;
     cursor: pointer;
   }
 
   .thumb.active {
-    border-color: var(--text);
+    opacity: 1;
+    outline: 2px solid var(--fg);
+    outline-offset: 2px;
   }
 
   .thumb img {
@@ -1875,42 +1680,31 @@ h2 {
   }
 
   .detail-info {
-    gap: 12px;
-    padding: 0;
+    position: sticky;
+    top: calc(var(--header-h) + 24px);
+    gap: 24px;
   }
 
-  /* Inline button under the price; contact block after it. */
+
+  /* Inline under the title; the contact block comes after it. */
   .buy-bar {
     position: static;
-    margin: 8px 0 0;
+    margin: 0;
     padding: 0;
     background: none;
-    border: 0;
-  }
-
-  .buy-bar-price {
-    display: none;
   }
 
   .detail-info .order-contact {
     order: 1;
   }
 
-  .cart {
-    max-width: 640px;
-    margin: 0 auto;
-  }
-
-  /* Drawer becomes a side panel on the inline-end side (right in LTR,
-     left in RTL). */
+  /* Drawer becomes a side panel on the inline-end side. */
   .drawer {
     inset-block: 0;
     inset-inline: auto 0;
     width: min(420px, 100%);
     height: 100%;
     max-height: none;
-    border-radius: 0;
-    border-inline-start: 1px solid var(--border);
     animation-name: panel-in;
   }
 
@@ -1927,39 +1721,115 @@ h2 {
   }
 
   .drawer-header {
-    padding-block: 6px;
+    min-height: 64px;
+  }
+
+  .footer-contact {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    column-gap: 32px;
+  }
+
+  .footer {
+    --disc: 260px;
+  }
+
+  .checkout-sections {
+    margin-inline: 0;
+    padding-inline: 32px;
+  }
+
+  .result-slip {
+    padding: 40px 36px 32px;
   }
 }
 
-@keyframes panel-in {
-  from {
-    transform: translateX(calc(100% * var(--inline-sign)));
+@media (min-width: 900px) {
+  .checkout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    align-items: start;
+    column-gap: 32px;
+  }
+
+  .checkout > h1,
+  .checkout-banner {
+    grid-column: 1 / -1;
+  }
+
+  /* Two short fields per row on wide screens. */
+  .checkout-section {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 16px;
+  }
+
+  .checkout-section > legend,
+  .checkout-section > .field:has(.choices),
+  .checkout-section > .field:has(.pay-methods),
+  .checkout-section > p,
+  .checkout-section > .field:nth-of-type(3) {
+    grid-column: 1 / -1;
+  }
+
+  .checkout-section > .field {
+    margin-bottom: 18px;
+  }
+
+  .checkout-bar {
+    position: sticky;
+    top: calc(var(--header-h) + 24px);
+    bottom: auto;
+    gap: 16px;
+    margin: 0;
+    padding: 24px;
+    border-top: 0;
+  }
+
+  .summary-toggle,
+  .pay-btn-total {
+    display: none;
+  }
+
+  .pay-btn {
+    justify-content: center;
+  }
+
+  .summary-details,
+  .checkout-bar.open .summary-details {
+    display: block;
+    max-height: none;
+    overflow: visible;
+    padding: 0;
+  }
+
+  .summary-title {
+    position: static;
+    width: auto;
+    height: auto;
+    clip-path: none;
+    margin-bottom: 4px;
+    font-size: 1.25rem;
   }
 }
 
-@keyframes panel-out {
-  to {
-    transform: translateX(calc(100% * var(--inline-sign)));
-  }
-}
-
-@media (min-width: 1024px) {
+@media (min-width: 1100px) {
   .grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
+/* ---------------------------------------------------------------- Motion */
 
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-  }
-
-  .skeleton::after {
-    display: none;
   }
 }

@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase'
 
-const FIELDS = 'id, name, description, size, price, images, is_new, is_sold, created_at'
+const FIELDS = 'id, name, description, size, price, old_price, images, is_new, is_sold, created_at'
 
 // Lists products newest first. `categorySlug` filters through the categories
 // relation; `!inner` turns the embed into a join so non-matching rows drop out.

@@ -2,14 +2,14 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import { getProductById } from '../api/products'
-import { BackIcon } from '../components/Icons'
+import { BackIcon, CheckIcon } from '../components/Icons'
 import ImageCarousel from '../components/ImageCarousel'
 import OrderContact from '../components/OrderContact'
-import ProductBadge from '../components/ProductBadge'
+import { ProductMarker, ProductPrice } from '../components/ProductMeta'
 import StatusMessage from '../components/StatusMessage'
 import { useCart } from '../context/CartContext'
 import { categoryName } from '../utils/category'
-import { formatPrice, productImages } from '../utils/product'
+import { productImages } from '../utils/product'
 
 export default function ProductDetail() {
   const { t } = useTranslation()
@@ -62,12 +62,14 @@ export default function ProductDetail() {
       <div className="detail-layout">
         {/* key: start a new product on its first image */}
         <ImageCarousel key={product.id} images={images} alt={product.name}>
-          <ProductBadge product={product} />
+          <ProductMarker product={product} />
         </ImageCarousel>
         <div className="detail-info">
-          <h1>{product.name}</h1>
-          {product.size && <p className="detail-size">{t('product.size', { size: product.size })}</p>}
-          <p className="detail-price">{formatPrice(product.price)}</p>
+          <div className="detail-head">
+            <h1>{product.name}</h1>
+            <ProductPrice product={product} className="price detail-price" />
+            {product.size && <p className="detail-size">{t('product.size', { size: product.size })}</p>}
+          </div>
           {category && (
             <dl className="detail-meta">
               <dt>{t('product.categoryLabel')}</dt>
@@ -80,15 +82,18 @@ export default function ProductDetail() {
           )}
           {/* Sticky to the bottom of the screen on mobile, inline from tablet up. */}
           <div className="buy-bar">
-            <span className="buy-bar-price">{formatPrice(product.price)}</span>
+            {/* Sold: the stamp on the tag already says it; the bar explains. */}
             {product.is_sold ? (
-              <button type="button" className="btn btn-block" disabled>
-                {t('product.soldButton')}
-              </button>
+              <p className="buy-bar-note">{t('product.soldNote')}</p>
             ) : inCart ? (
-              <button type="button" className="btn btn-block btn-outline" onClick={openDrawer}>
-                {t('product.inCart')}
-              </button>
+              <>
+                <p className="buy-bar-note added" role="status">
+                  <CheckIcon /> {t('product.added')}
+                </p>
+                <button type="button" className="btn btn-outline" onClick={openDrawer}>
+                  {t('product.viewCart')}
+                </button>
+              </>
             ) : (
               <button type="button" className="btn btn-block" onClick={() => add(product)}>
                 {t('product.addToCart')}
@@ -112,9 +117,8 @@ function DetailSkeleton() {
           <div className="carousel skeleton" />
         </div>
         <div className="detail-info">
-          <span className="skeleton skeleton-line" style={{ width: '70%', height: 28 }} />
-          <span className="skeleton skeleton-line" style={{ width: '25%' }} />
-          <span className="skeleton skeleton-line" style={{ width: '35%', height: 22 }} />
+          <span className="skeleton skeleton-line" style={{ width: '70%', height: 32 }} />
+          <span className="skeleton skeleton-line" style={{ width: '40%' }} />
         </div>
       </div>
     </div>

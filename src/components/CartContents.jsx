@@ -13,6 +13,7 @@ export default function CartContents({ onNavigate }) {
     return (
       <div className="page-message">
         <p className="cart-empty">{t('cart.empty')}</p>
+        <p className="muted">{t('cart.emptyBody')}</p>
         <Link to="/shop" className="btn" onClick={onNavigate}>{t('cart.browse')}</Link>
       </div>
     )
@@ -29,7 +30,7 @@ export default function CartContents({ onNavigate }) {
             <div className="cart-item-info">
               <Link to={`/shop/${p.id}`} className="cart-item-name" onClick={onNavigate}>{p.name}</Link>
               {p.size && <span className="muted">{t('product.size', { size: p.size })}</span>}
-              <span>{formatPrice(p.price)}</span>
+              <span className="cart-item-price">{formatPrice(p.price)}</span>
             </div>
             <button type="button" className="link-btn" onClick={() => remove(p.id)} aria-label={t('cart.removeItem', { name: p.name })}>
               {t('cart.remove')}

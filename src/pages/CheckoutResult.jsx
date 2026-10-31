@@ -33,12 +33,14 @@ export function CheckoutSuccess() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="page-message checkout-result">
-      <SuccessIcon />
-      <h1>{t(cod ? 'success.codTitle' : 'success.paidTitle')}</h1>
-      {ref && <p className="order-ref">{t('success.order', { ref })}</p>}
-      <p>{t(cod ? 'success.codBody' : 'success.paidBody')}</p>
-      {cod && <OrderSummary summary={summary} />}
+    <div className="checkout-result">
+      <div className="slip result-slip">
+        <span className="result-stamp" aria-hidden="true">{t(cod ? 'success.stamp' : 'success.stampPaid')}</span>
+        <h1>{t(cod ? 'success.codTitle' : 'success.paidTitle')}</h1>
+        {ref && <p className="order-ref">{t('success.order', { ref })}</p>}
+        <p>{t(cod ? 'success.codBody' : 'success.paidBody')}</p>
+        {cod && summary && <OrderSummary summary={summary} />}
+      </div>
       <Link to="/shop" className="btn">{t('success.continue')}</Link>
     </div>
   )
@@ -52,10 +54,12 @@ function OrderSummary({ summary }) {
       <ul>
         {summary.items.map((item) => (
           <li key={item.id}>
-            <span>
-              {item.name}
-              {item.quantity > 1 && ` × ${item.quantity}`}
-              {item.size && <span className="muted"> · {t('summary.size', { size: item.size })}</span>}
+            <span className="result-item">
+              <span>
+                {item.name}
+                {item.quantity > 1 && ` × ${item.quantity}`}
+              </span>
+              {item.size && <span className="muted">{t('summary.size', { size: item.size })}</span>}
             </span>
             <span>{formatPrice(item.price * item.quantity)}</span>
           </li>
@@ -87,23 +91,18 @@ export function CheckoutFailed() {
   const { t } = useTranslation()
   const { ref } = useOrder()
   return (
-    <div className="page-message checkout-result">
-      <h1>{t('failed.title')}</h1>
-      {ref && <p className="order-ref">{t('success.order', { ref })}</p>}
-      <p>{t('failed.body')}</p>
+    <div className="checkout-result">
+      <div className="slip result-slip">
+        <h1>{t('failed.title')}</h1>
+        {ref && <p className="order-ref">{t('success.order', { ref })}</p>}
+        <p>{t('failed.body')}</p>
+        <div className="checkout-result-help">
+          <p className="muted">{t('failed.help')}</p>
+          <ContactLinks />
+        </div>
+      </div>
       <Link to="/checkout" className="btn">{t('failed.tryAgain')}</Link>
       <Link to="/shop" className="link-btn">{t('failed.back')}</Link>
-      <div className="checkout-result-help">
-        <p className="muted">{t('failed.help')}</p>
-        <ContactLinks />
-      </div>
     </div>
   )
 }
-
-const SuccessIcon = () => (
-  <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <circle cx="12" cy="12" r="10" />
-    <path d="m7.5 12.5 3 3 6-6.5" />
-  </svg>
-)

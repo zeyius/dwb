@@ -225,6 +225,7 @@ export default function Checkout() {
     return (
       <div className="page-message">
         <h1>{t('cart.empty')}</h1>
+        <p>{t('cart.emptyBody')}</p>
         <Link to="/shop" className="btn">{t('cart.browse')}</Link>
       </div>
     )
@@ -240,9 +241,11 @@ export default function Checkout() {
         </p>
       )}
 
-      <div className="checkout-sections">
+      <div className="checkout-sections slip">
         <fieldset className="checkout-section">
-          <legend>{t('checkout.contact')}</legend>
+          <legend>
+            <span className="step-num">1</span> {t('checkout.contact')}
+          </legend>
           <Field id="name" label={t('checkout.name')} error={shown.name}>
             <input
               value={form.name}
@@ -273,7 +276,9 @@ export default function Checkout() {
         </fieldset>
 
         <fieldset className="checkout-section">
-          <legend>{t('checkout.delivery')}</legend>
+          <legend>
+            <span className="step-num">2</span> {t('checkout.delivery')}
+          </legend>
           <Field id="wilaya_code" label={t('checkout.wilaya')} error={shown.wilaya_code}>
             <select value={form.wilaya_code} onChange={(e) => update('wilaya_code', e.target.value)} onBlur={() => blur('wilaya_code')}>
               <option value="" disabled>
@@ -281,7 +286,7 @@ export default function Checkout() {
               </option>
               {algeria.map((w) => (
                 <option key={w.code} value={w.code}>
-                  {pad(w.code)} · {placeName(w, lang)}
+                  {pad(w.code)} {placeName(w, lang)}
                 </option>
               ))}
             </select>
@@ -336,7 +341,9 @@ export default function Checkout() {
         </fieldset>
 
         <fieldset className="checkout-section">
-          <legend>{t('payment.title')}</legend>
+          <legend>
+            <span className="step-num">3</span> {t('payment.title')}
+          </legend>
           <PaymentMethods
             value={form.payment_method}
             onChange={(v) => update('payment_method', v)}
@@ -403,7 +410,12 @@ export default function Checkout() {
         <button type="submit" className="btn btn-block pay-btn" disabled={submitting} aria-live="polite">
           {submitting
             ? t(online ? 'button.redirecting' : 'button.placing')
-            : `${t(online ? 'button.pay' : 'button.confirm')} · ${formatPrice(total)}`}
+            : (
+              <>
+                <span>{t(online ? 'button.pay' : 'button.confirm')}</span>
+                <span className="pay-btn-total">{formatPrice(total)}</span>
+              </>
+            )}
         </button>
       </div>
     </form>

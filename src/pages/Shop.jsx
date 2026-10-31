@@ -35,7 +35,6 @@ export default function Shop() {
   const [status, setStatus] = useState(cached ? 'ready' : 'loading') // loading | ready | error
   const [moreStatus, setMoreStatus] = useState('idle') // idle | loading | error
   const requestId = useRef(0)
-  const productsRef = useRef(null)
 
   const loadCategories = useCallback(() => {
     setCategoriesError(null)
@@ -78,6 +77,26 @@ export default function Shop() {
 
   useEffect(loadFirstPage, [loadFirstPage])
 
+  // The header and the category tabs pin together as one block; it gets its
+  // bottom hairline once the hero has gone under it (or right away when
+  // scrolled, if there's no hero). Marker: <html data-hero-gone>.
+  const heroEnd = useRef(null)
+  useEffect(() => {
+    const root = document.documentElement
+    const headerH = parseFloat(getComputedStyle(root).getPropertyValue('--header-h')) || 56
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        root.toggleAttribute('data-hero-gone', !entry.isIntersecting && entry.boundingClientRect.top < headerH)
+      },
+      { rootMargin: `-${headerH}px 0px 0px 0px` },
+    )
+    observer.observe(heroEnd.current)
+    return () => {
+      observer.disconnect()
+      root.removeAttribute('data-hero-gone')
+    }
+  }, [])
+
   function showMore() {
     const id = requestId.current
     setMoreStatus('loading')
@@ -102,7 +121,8 @@ export default function Shop() {
 
   return (
     <>
-      <Hero targetRef={productsRef} />
+      <Hero />
+      <div className="hero-end" ref={heroEnd} aria-hidden="true" />
       <div className="shop">
         <CategorySidebar
           categories={categories}
@@ -110,12 +130,11 @@ export default function Shop() {
           error={categoriesError}
           onRetry={loadCategories}
         />
-        <section className="shop-content" ref={productsRef} aria-busy={status === 'loading'}>
-          <div className="shop-heading">
-            <h1>{heading || ' '}</h1>
-            {/* Always rendered so the count appearing doesn't shift the grid. */}
-            <span className="muted">{status === 'ready' ? t('shop.count', { count: total }) : ' '}</span>
-          </div>
+        <section className="shop-content" aria-busy={status === 'loading'}>
+          {/* The tabs already show the category; the heading is for screen readers. */}
+          <h1 className="visually-hidden">{heading}</h1>
+          {/* Always rendered so the count appearing doesn't shift the grid. */}
+          <p className="shop-count muted">{status === 'ready' ? t('shop.count', { count: total }) : ' '}</p>
 
           {status === 'loading' && <div className="grid">{skeletons(PAGE_SIZE)}</div>}
           {status === 'error' && (

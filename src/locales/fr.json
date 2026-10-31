@@ -8,20 +8,25 @@
     "label": "Langue",
     "ar": "العربية",
     "fr": "Français",
-    "en": "English"
+    "en": "English",
+    "short": {
+      "ar": "عربي",
+      "fr": "FR",
+      "en": "EN"
+    }
   },
   "header": {
     "home": "Accueil {{name}}",
     "nav": "Boutique",
     "instagram": "Instagram",
-    "cart_one": "Panier, {{count}} article",
-    "cart_many": "Panier, {{count}} d’articles",
-    "cart_other": "Panier, {{count}} articles"
+    "cart_one": "Panier, {{count}} pièce",
+    "cart_many": "Panier, {{count}} de pièces",
+    "cart_other": "Panier, {{count}} pièces"
   },
   "categories": {
     "label": "Catégories",
     "all": "Tout",
-    "error": "Échec du chargement · réessayer",
+    "error": "Impossible de charger les catégories. Touchez pour réessayer",
     "sneakers": "Baskets",
     "jackets": "Vestes",
     "ensembles": "Ensembles",
@@ -32,57 +37,56 @@
     "tee-shirts": "T-shirts"
   },
   "shop": {
-    "count_one": "{{count}} article",
-    "count_many": "{{count}} d’articles",
-    "count_other": "{{count}} articles",
-    "loadError": "Impossible de charger les produits.",
-    "empty": "Aucun produit pour le moment",
-    "loadMoreError": "Impossible de charger plus de produits.",
-    "showMore": "Voir plus"
-  },
-  "hero": {
-    "tagline": "Nouveautés, choisies avec soin.",
-    "shopNow": "Découvrir"
+    "count_one": "{{count}} pièce",
+    "count_many": "{{count}} de pièces",
+    "count_other": "{{count}} pièces",
+    "loadError": "Impossible de charger les pièces. Vérifiez votre connexion et réessayez.",
+    "empty": "Aucune pièce ici pour le moment. Essayez une autre catégorie.",
+    "loadMoreError": "Impossible de charger plus de pièces.",
+    "showMore": "Voir plus de pièces"
   },
   "product": {
-    "new": "NOUVEAU",
-    "sold": "VENDU",
+    "new": "Nouveau",
+    "sold": "Vendu",
     "size": "Taille {{size}}",
     "sizeLabel": "Taille",
     "categoryLabel": "Catégorie",
     "shop": "Boutique",
-    "soldButton": "Vendu",
-    "inCart": "Dans le panier · Voir",
     "addToCart": "Ajouter au panier",
     "loadError": "Impossible de charger ce produit.",
-    "notFound": "Cet article n’existe pas.",
+    "notFound": "Cette pièce n’est plus là.",
     "backToShop": "Retour à la boutique",
-    "orderNote": "Ajoutez-le à votre panier, ou écrivez-nous directement pour réserver cette pièce.",
+    "orderNote": "Envoyez-nous le nom de la pièce, on vous la réserve.",
     "photos": "Photos de {{name}}, {{count}} images",
     "photo": "{{name}}, image {{index}} sur {{count}}",
-    "showImage": "Afficher l’image {{index}}"
+    "showImage": "Afficher l’image {{index}}",
+    "wasPrice": "Avant",
+    "soldNote": "Quelqu’un l’a eue avant vous. Chaque pièce est unique, elle ne reviendra pas.",
+    "added": "Ajouté au panier",
+    "viewCart": "Voir le panier"
   },
   "order": {
-    "howTo": "Comment commander"
+    "howTo": "Vous préférez commander par message ?"
   },
   "cart": {
-    "title": "Panier",
-    "titleCount": "Panier ({{count}})",
+    "title": "Votre panier",
+    "titleCount": "Votre panier ({{count}})",
     "close": "Fermer le panier",
     "empty": "Votre panier est vide",
-    "browse": "Voir la boutique",
+    "browse": "Voir les pièces",
     "remove": "Retirer",
     "removeItem": "Retirer {{name}}",
     "total": "Total",
-    "checkout": "Commander",
-    "clear": "Vider le panier"
+    "checkout": "Passer la commande",
+    "clear": "Vider le panier",
+    "emptyBody": "Chaque pièce est unique. Si l’une d’elles vous plaît, ajoutez-la avant quelqu’un d’autre."
   },
   "checkout": {
-    "title": "Commande",
-    "contact": "Coordonnées",
+    "title": "Passer la commande",
+    "contact": "Vos coordonnées",
     "name": "Nom complet",
     "phone": "Téléphone",
-    "phoneHint": "Mobile : 05, 06 ou 07 + 8 chiffres",
+    "phoneHint": "Numéro mobile : 10 chiffres, commençant par 05, 06 ou 07",
     "delivery": "Livraison",
     "wilaya": "Wilaya",
     "chooseWilaya": "Choisissez une wilaya",
@@ -98,20 +102,20 @@
     "deskNote": "À récupérer au bureau du transporteur",
     "unavailable": "Indisponible",
     "ratesError": "Impossible de charger les tarifs de livraison.",
-    "summary": "Récapitulatif",
-    "items_one": "({{count}} article)",
-    "items_many": "({{count}} d’articles)",
-    "items_other": "({{count}} articles)",
+    "summary": "Votre commande",
+    "items_one": "({{count}} pièce)",
+    "items_many": "({{count}} de pièces)",
+    "items_other": "({{count}} pièces)",
     "sold": "Vendu",
     "subtotal": "Sous-total",
     "deliveryLine": "Livraison",
     "total": "Total",
-    "removeSold": "Retirez les articles vendus de votre commande pour continuer.",
+    "removeSold": "Des pièces de votre commande ont été vendues. Retirez-les pour continuer.",
     "justSold_one": "{{names}} vient d’être vendu et a été retiré de votre panier.",
     "justSold_many": "{{names}} viennent d’être vendus et ont été retirés de votre panier.",
     "justSold_other": "{{names}} viennent d’être vendus et ont été retirés de votre panier.",
     "someItems": "Certains articles",
-    "unreachable": "Impossible de joindre le serveur. Vérifiez votre connexion et réessayez.",
+    "unreachable": "Impossible de joindre notre serveur. Vérifiez votre connexion et réessayez.",
     "fewer": "Diminuer {{name}}",
     "more": "Augmenter {{name}}",
     "quantity": "Quantité {{count}}",
@@ -131,40 +135,42 @@
       "label": "CIB",
       "note": "Carte bancaire"
     },
-    "codInfo": "Rien à payer maintenant : vous payez le livreur en espèces.",
-    "onlineInfo": "Vous serez redirigé vers Chargily Pay pour payer en toute sécurité."
+    "codInfo": "Vous payez le livreur en espèces à la réception.",
+    "onlineInfo": "Vous payerez ensuite en toute sécurité sur Chargily Pay."
   },
   "button": {
     "confirm": "Confirmer la commande",
     "pay": "Payer maintenant",
-    "placing": "Envoi de la commande…",
-    "redirecting": "Redirection vers le paiement…"
+    "placing": "Confirmation en cours…",
+    "redirecting": "Ouverture de la page de paiement…"
   },
   "errors": {
-    "name": "Indiquez votre nom complet.",
-    "phone": "Indiquez un numéro de mobile, par exemple 0550 12 34 56.",
-    "wilaya": "Choisissez une wilaya.",
-    "commune": "Choisissez une commune.",
-    "address": "Indiquez votre adresse.",
+    "name": "Entrez votre nom et prénom.",
+    "phone": "Entrez un numéro à 10 chiffres commençant par 05, 06 ou 07.",
+    "wilaya": "Choisissez votre wilaya.",
+    "commune": "Choisissez votre commune.",
+    "address": "Entrez votre rue et votre bâtiment pour que le livreur vous trouve.",
     "deliveryType": "Choisissez un type de livraison.",
     "paymentMethod": "Choisissez un mode de paiement.",
-    "noDelivery": "La livraison n’est pas encore disponible à {{wilaya}}."
+    "noDelivery": "Nous ne livrons pas encore à {{wilaya}}. Contactez-nous, on trouvera une solution."
   },
   "serverErrors": {
-    "invalid_fields": "Veuillez vérifier les champs signalés.",
+    "invalid_fields": "Certaines informations sont à corriger. Vérifiez les champs en rouge.",
     "quantity_limit": "Seulement {{max}} exemplaire de « {{name}} » disponible.",
     "delivery_unavailable_home": "La livraison à domicile n’est pas disponible à {{wilaya}}.",
     "delivery_unavailable_desk": "Le retrait au bureau n’est pas disponible à {{wilaya}}.",
     "payment_unavailable": "Le service de paiement est indisponible pour le moment. Réessayez dans un instant.",
-    "generic": "Une erreur est survenue. Veuillez réessayer."
+    "generic": "Un problème est survenu de notre côté. Réessayez dans un instant."
   },
   "success": {
-    "codTitle": "Commande reçue",
-    "codBody": "Nous vous appellerons pour confirmer votre commande.",
+    "codTitle": "Commande confirmée",
+    "codBody": "On vous appelle bientôt pour organiser la livraison. Gardez votre téléphone à portée de main.",
     "paidTitle": "Paiement confirmé",
     "paidBody": "Votre paiement a bien été effectué. Nous vous appellerons pour organiser la livraison.",
     "order": "Commande n° {{ref}}",
-    "continue": "Continuer mes achats"
+    "continue": "Continuer mes achats",
+    "stamp": "Confirmée",
+    "stampPaid": "Payée"
   },
   "failed": {
     "title": "Paiement non abouti",
@@ -183,7 +189,7 @@
     "payment": "Paiement"
   },
   "footer": {
-    "tagline": "Des pièces de seconde main, choisies avec soin.",
+    "tagline": "Des vêtements de seconde main. Un seul de chaque.",
     "rights": "© {{year}} {{name}}. Tous droits réservés."
   }
 }

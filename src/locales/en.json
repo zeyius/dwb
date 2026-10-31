@@ -8,7 +8,12 @@
     "label": "Language",
     "ar": "العربية",
     "fr": "Français",
-    "en": "English"
+    "en": "English",
+    "short": {
+      "ar": "عربي",
+      "fr": "FR",
+      "en": "EN"
+    }
   },
   "header": {
     "home": "{{name}} home",
@@ -20,7 +25,7 @@
   "categories": {
     "label": "Categories",
     "all": "All",
-    "error": "Categories failed · retry",
+    "error": "Couldn’t load categories. Tap to retry",
     "sneakers": "Sneakers",
     "jackets": "Jackets",
     "ensembles": "Ensembles",
@@ -31,56 +36,55 @@
     "tee-shirts": "T-shirts"
   },
   "shop": {
-    "count_one": "{{count}} item",
-    "count_other": "{{count}} items",
-    "loadError": "Couldn’t load products.",
-    "empty": "No products yet",
-    "loadMoreError": "Couldn’t load more products.",
-    "showMore": "Show more"
-  },
-  "hero": {
-    "tagline": "New arrivals, picked with care.",
-    "shopNow": "Shop now"
+    "count_one": "{{count}} piece",
+    "count_other": "{{count}} pieces",
+    "loadError": "We couldn’t load the pieces. Check your connection and try again.",
+    "empty": "No pieces here right now. Try another category.",
+    "loadMoreError": "We couldn’t load more pieces.",
+    "showMore": "Show more pieces"
   },
   "product": {
-    "new": "NEW",
-    "sold": "SOLD",
+    "new": "New",
+    "sold": "Sold",
     "size": "Size {{size}}",
     "sizeLabel": "Size",
     "categoryLabel": "Category",
     "shop": "Shop",
-    "soldButton": "Sold",
-    "inCart": "In cart · View",
     "addToCart": "Add to cart",
     "loadError": "Couldn’t load this product.",
-    "notFound": "This item doesn’t exist.",
+    "notFound": "This piece isn’t here anymore.",
     "backToShop": "Back to shop",
-    "orderNote": "Add it to your cart, or message us directly to reserve this piece.",
+    "orderNote": "Send us the name of the piece and we’ll hold it for you.",
     "photos": "{{name}} photos, {{count}} images",
     "photo": "{{name}}, image {{index}} of {{count}}",
-    "showImage": "Show image {{index}}"
+    "showImage": "Show image {{index}}",
+    "wasPrice": "Was",
+    "soldNote": "Someone got this one first. Every piece is unique, so it won’t be back.",
+    "added": "Added to cart",
+    "viewCart": "View cart"
   },
   "order": {
-    "howTo": "How to order"
+    "howTo": "Prefer to order by message?"
   },
   "cart": {
-    "title": "Cart",
-    "titleCount": "Cart ({{count}})",
+    "title": "Your cart",
+    "titleCount": "Your cart ({{count}})",
     "close": "Close cart",
     "empty": "Your cart is empty",
-    "browse": "Browse the shop",
+    "browse": "Browse the pieces",
     "remove": "Remove",
     "removeItem": "Remove {{name}}",
     "total": "Total",
-    "checkout": "Checkout",
-    "clear": "Clear cart"
+    "checkout": "Go to checkout",
+    "clear": "Empty cart",
+    "emptyBody": "Every piece is one of a kind. When you see one you like, add it before someone else does."
   },
   "checkout": {
-    "title": "Checkout",
-    "contact": "Contact",
+    "title": "Place your order",
+    "contact": "Your details",
     "name": "Full name",
     "phone": "Phone",
-    "phoneHint": "Mobile: 05, 06 or 07 + 8 digits",
+    "phoneHint": "Mobile number: 10 digits, starting with 05, 06 or 07",
     "delivery": "Delivery",
     "wilaya": "Wilaya",
     "chooseWilaya": "Choose a wilaya",
@@ -93,21 +97,21 @@
     "home": "Home delivery",
     "homeNote": "To your address",
     "desk": "Desk pickup",
-    "deskNote": "Collect from the carrier’s office",
+    "deskNote": "Collect it from the courier’s office",
     "unavailable": "Unavailable",
     "ratesError": "Couldn’t load delivery prices.",
-    "summary": "Order summary",
-    "items_one": "({{count}} item)",
-    "items_other": "({{count}} items)",
+    "summary": "Your order",
+    "items_one": "({{count}} piece)",
+    "items_other": "({{count}} pieces)",
     "sold": "Sold",
     "subtotal": "Subtotal",
     "deliveryLine": "Delivery",
     "total": "Total",
-    "removeSold": "Remove the sold items from your order to continue.",
+    "removeSold": "Some pieces in your order were sold. Remove them to continue.",
     "justSold_one": "{{names}} just sold and was removed from your cart.",
     "justSold_other": "{{names}} just sold and were removed from your cart.",
     "someItems": "Some items",
-    "unreachable": "Couldn’t reach the server. Check your connection and try again.",
+    "unreachable": "We couldn’t reach our server. Check your connection and try again.",
     "fewer": "Fewer {{name}}",
     "more": "More {{name}}",
     "quantity": "Quantity {{count}}",
@@ -127,40 +131,42 @@
       "label": "CIB",
       "note": "Bank card"
     },
-    "codInfo": "Nothing to pay now: you pay the courier in cash.",
-    "onlineInfo": "You’ll be redirected to Chargily Pay to pay securely."
+    "codInfo": "You pay the courier in cash when your order arrives.",
+    "onlineInfo": "Next, you’ll pay securely on Chargily Pay."
   },
   "button": {
     "confirm": "Confirm order",
     "pay": "Pay now",
-    "placing": "Placing order…",
-    "redirecting": "Redirecting to payment…"
+    "placing": "Confirming your order…",
+    "redirecting": "Opening the payment page…"
   },
   "errors": {
-    "name": "Enter your full name.",
-    "phone": "Enter a mobile number like 0550 12 34 56.",
-    "wilaya": "Choose a wilaya.",
-    "commune": "Choose a commune.",
-    "address": "Enter your address.",
+    "name": "Enter your first and last name.",
+    "phone": "Enter a 10-digit number starting with 05, 06 or 07.",
+    "wilaya": "Choose your wilaya.",
+    "commune": "Choose your commune.",
+    "address": "Enter your street and building so the courier can find you.",
     "deliveryType": "Choose a delivery type.",
     "paymentMethod": "Choose a payment method.",
-    "noDelivery": "Delivery isn’t available in {{wilaya}} yet."
+    "noDelivery": "We don’t deliver to {{wilaya}} yet. Contact us and we’ll find a way."
   },
   "serverErrors": {
-    "invalid_fields": "Please check the highlighted fields.",
+    "invalid_fields": "Some details need fixing. Check the fields marked in red.",
     "quantity_limit": "Only {{max}} of “{{name}}” is available.",
     "delivery_unavailable_home": "Home delivery isn’t available in {{wilaya}}.",
     "delivery_unavailable_desk": "Desk pickup isn’t available in {{wilaya}}.",
     "payment_unavailable": "The payment service is unavailable right now. Please try again in a moment.",
-    "generic": "Something went wrong. Please try again."
+    "generic": "Something went wrong on our side. Try again in a moment."
   },
   "success": {
-    "codTitle": "Order received",
-    "codBody": "We’ll call you to confirm your order.",
+    "codTitle": "Order confirmed",
+    "codBody": "We’ll call you soon to arrange delivery. Keep your phone nearby.",
     "paidTitle": "Payment confirmed",
     "paidBody": "Your payment went through. We’ll call you to arrange delivery.",
     "order": "Order #{{ref}}",
-    "continue": "Continue shopping"
+    "continue": "Keep shopping",
+    "stamp": "Confirmed",
+    "stampPaid": "Paid"
   },
   "failed": {
     "title": "Payment not completed",
@@ -179,7 +185,7 @@
     "payment": "Payment"
   },
   "footer": {
-    "tagline": "Second-hand pieces, picked with care.",
+    "tagline": "Second-hand clothes. One of each.",
     "rights": "© {{year}} {{name}}. All rights reserved."
   }
 }
