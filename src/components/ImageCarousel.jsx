@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import Photo from './Photo'
 
 // Swipeable scroll-snap carousel with position dots below it. From tablet up,
 // thumbnails are also shown and jump to their slide. One image: neither.
@@ -36,12 +37,12 @@ export default function ImageCarousel({ images, alt, children }) {
         >
           {images.map((src, i) => (
             <div className="carousel-slide" key={src + i}>
-              <img
+              <Photo
                 src={src}
+                sizes="(min-width: 768px) 55vw, 100vw"
                 alt={multiple ? t('product.photo', { name: alt, index: i + 1, count: images.length }) : alt}
                 loading={i === 0 ? 'eager' : 'lazy'}
                 fetchPriority={i === 0 ? 'high' : 'auto'}
-                decoding="async"
               />
             </div>
           ))}
@@ -66,7 +67,7 @@ export default function ImageCarousel({ images, alt, children }) {
               aria-label={t('product.showImage', { index: i + 1 })}
               aria-pressed={i === active}
             >
-              <img src={src} alt="" loading="lazy" decoding="async" />
+              <Photo src={src} alt="" sizes="72px" />
             </button>
           ))}
         </div>

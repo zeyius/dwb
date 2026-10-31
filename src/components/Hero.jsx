@@ -1,5 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStoreSettings } from '../context/StoreSettingsContext'
+import Photo from './Photo'
+
+// The banner's frame is sized before the image arrives so nothing below it
+// moves when it loads: the ratio of the last banner seen on this device, else
+// the current banner's (2744 x 1298). Update it when the banner changes shape.
+const RATIO_KEY = 'hero:ratio'
+const DEFAULT_RATIO = 2744 / 1298
+function savedRatio() {
+  try {
+    return Number(localStorage.getItem(RATIO_KEY)) || DEFAULT_RATIO
+  } catch {
+    return DEFAULT_RATIO
+  }
+}
 
 // Banner from store_settings.hero_image_url, full width under the header,
 // shown whole at its own ratio. A skeleton holds the space while the settings
@@ -14,25 +28,39 @@ import { useStoreSettings } from '../context/StoreSettingsContext'
 export default function Hero() {
   const { heroImageUrl, loaded } = useStoreSettings()
   const [status, setStatus] = useState('loading') // loading | ready | error
+  const [ratio, setRatio] = useState(savedRatio)
   const ref = useRef(null)
   useCollapseFallback(ref)
+
+  function onLoad(e) {
+    const { naturalWidth: w, naturalHeight: h } = e.currentTarget
+    if (w && h) {
+      setRatio(w / h)
+      try {
+        localStorage.setItem(RATIO_KEY, String(w / h))
+      } catch {
+        // storage unavailable: next visit uses the default ratio
+      }
+    }
+    setStatus('ready')
+  }
 
   if (loaded && (!heroImageUrl || status === 'error')) return null
   const ready = status === 'ready'
 
   return (
     <section className="hero" ref={ref} aria-busy={!ready}>
-      <div className={ready ? 'hero-frame' : 'hero-frame skeleton'}>
+      <div className={ready ? 'hero-frame' : 'hero-frame skeleton'} style={{ aspectRatio: ratio }}>
         {heroImageUrl && (
-          <img
+          <Photo
             key={heroImageUrl}
             className="hero-img"
             src={heroImageUrl}
             alt=""
+            sizes="100vw"
             loading="eager"
             fetchPriority="high"
-            decoding="async"
-            onLoad={() => setStatus('ready')}
+            onLoad={onLoad}
             onError={() => setStatus('error')}
           />
         )}

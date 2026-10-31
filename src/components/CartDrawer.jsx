@@ -35,8 +35,15 @@ export default function CartDrawer() {
     }
   }, [drawerOpen])
 
-  // Any navigation (link inside the drawer, back button) closes it.
-  useEffect(closeDrawer, [key]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Any navigation (link inside the drawer, back button) closes it. Not on
+  // mount: the drawer is first mounted by being opened (see Layout).
+  const openedAt = useRef(key)
+  useEffect(() => {
+    if (key !== openedAt.current) {
+      openedAt.current = key
+      closeDrawer()
+    }
+  }, [key]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <dialog

@@ -4,12 +4,11 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import StatusMessage from './components/StatusMessage'
 import Shop from './pages/Shop'
-import ProductDetail from './pages/ProductDetail'
-import Cart from './pages/Cart'
-
-// Lazy: checkout carries the full wilaya/commune list (~20 KB gzipped); the
-// result pages (and the translations they share with it) are only seen after
-// an order.
+// Only the shop is in the main bundle; every other page loads when first
+// visited. Checkout carries the wilaya/commune list (~20 KB gzipped), so it
+// never loads on the shop.
+const ProductDetail = lazy(() => import('./pages/ProductDetail'))
+const Cart = lazy(() => import('./pages/Cart'))
 const Checkout = lazy(() => import('./pages/Checkout'))
 const CheckoutSuccess = lazy(() => import('./pages/CheckoutResult').then((m) => ({ default: m.CheckoutSuccess })))
 const CheckoutFailed = lazy(() => import('./pages/CheckoutResult').then((m) => ({ default: m.CheckoutFailed })))
@@ -25,8 +24,22 @@ export default function App() {
       <Route element={<Layout />}>
         <Route path="/" element={<Navigate to="/shop" replace />} />
         <Route path="/shop" element={<Shop />} />
-        <Route path="/shop/cart" element={<Cart />} />
-        <Route path="/shop/:id" element={<ProductDetail />} />
+        <Route
+          path="/shop/cart"
+          element={
+            <Suspense fallback={loading}>
+              <Cart />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/shop/:id"
+          element={
+            <Suspense fallback={loading}>
+              <ProductDetail />
+            </Suspense>
+          }
+        />
         <Route
           path="/checkout"
           element={

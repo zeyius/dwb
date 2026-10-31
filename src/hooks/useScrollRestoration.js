@@ -16,8 +16,11 @@ export default function useScrollRestoration() {
   }, [])
 
   // Record continuously: by the time the location changes, the old page is
-  // already gone and window.scrollY may have been clamped.
-  useEffect(() => {
+  // already gone and window.scrollY may have been clamped. A layout effect, so
+  // the listener moves to the new entry in the same commit that swaps the
+  // page: a passive effect can run late (after a lazy route's transition), and
+  // the old entry would record the clamped position.
+  useLayoutEffect(() => {
     let frame = 0
     const save = () => {
       cancelAnimationFrame(frame)

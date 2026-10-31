@@ -1,11 +1,21 @@
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
+import { useCart } from '../context/CartContext'
 import useScrollRestoration from '../hooks/useScrollRestoration'
-import CartDrawer from './CartDrawer'
 import Footer from './Footer'
 import Header from './Header'
 
+// The drawer's code loads the first time it's opened, then stays mounted so
+// it can animate open and closed.
+const CartDrawer = lazy(() => import('./CartDrawer'))
+
 export default function Layout() {
   const { pathname } = useLocation()
+  const { drawerOpen } = useCart()
+  const [drawerUsed, setDrawerUsed] = useState(drawerOpen)
+  useEffect(() => {
+    if (drawerOpen) setDrawerUsed(true)
+  }, [drawerOpen])
   useScrollRestoration()
 
   return (
@@ -17,7 +27,11 @@ export default function Layout() {
         <Outlet />
       </main>
       <Footer />
-      <CartDrawer />
+      {drawerUsed && (
+        <Suspense fallback={null}>
+          <CartDrawer />
+        </Suspense>
+      )}
     </div>
   )
 }

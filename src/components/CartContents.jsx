@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { formatPrice } from '../utils/product'
+import Photo from './Photo'
 
 // Item list + total, shared by the cart page and the cart drawer.
 // `onNavigate` lets the drawer close itself when a link inside it is followed.
@@ -25,7 +26,7 @@ export default function CartContents({ onNavigate }) {
         {items.map((p) => (
           <li key={p.id} className="cart-item">
             <Link to={`/shop/${p.id}`} className="cart-thumb" onClick={onNavigate} tabIndex={-1} aria-hidden="true">
-              <img src={p.image} alt="" loading="lazy" decoding="async" />
+              <Photo src={p.image} alt="" sizes="72px" />
             </Link>
             <div className="cart-item-info">
               <Link to={`/shop/${p.id}`} className="cart-item-name" onClick={onNavigate}>{p.name}</Link>

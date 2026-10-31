@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigationType, useSearchParams } from 'react-router-dom'
 import { getCategories } from '../api/categories'
 import { getProducts } from '../api/products'
 import CategorySidebar from '../components/CategorySidebar'
@@ -10,12 +10,13 @@ import StatusMessage from '../components/StatusMessage'
 import { categoryName } from '../utils/category'
 
 const PAGE_SIZE = 8
-// Cards in the first row on the widest layout; these skip lazy-loading.
-const PRIORITY_CARDS = 4
+// Cards on screen at load on a phone (the first row); these skip lazy-loading.
+const PRIORITY_CARDS = 2
 
 // Last result per category, kept across mounts so coming back from a product
 // renders the same list (including "Show more" pages) immediately and the
-// scroll position can be restored. Refreshed in the background on revisit.
+// scroll position can be restored. Back/forward uses it as is; arriving by a
+// link refreshes it in the background.
 const listCache = new Map()
 let categoriesCache = null
 
@@ -24,6 +25,7 @@ const skeletons = (n) => Array.from({ length: n }, (_, i) => <ProductCardSkeleto
 export default function Shop() {
   const { t } = useTranslation()
   const [searchParams] = useSearchParams()
+  const navigationType = useNavigationType()
   const category = searchParams.get('category') || null
   const cached = listCache.get(category)
 
@@ -61,6 +63,7 @@ export default function Shop() {
       setStatus('loading')
     }
     setMoreStatus('idle')
+    if (hit && navigationType === 'POP') return
     const limit = Math.max(PAGE_SIZE, hit?.items.length ?? 0)
     getProducts({ categorySlug: category, offset: 0, limit }).then(
       (res) => {
@@ -73,7 +76,7 @@ export default function Shop() {
       // A failed background refresh keeps the cached list.
       () => id === requestId.current && !hit && setStatus('error'),
     )
-  }, [category])
+  }, [category]) // eslint-disable-line react-hooks/exhaustive-deps -- navigationType only matters on arrival
 
   useEffect(loadFirstPage, [loadFirstPage])
 

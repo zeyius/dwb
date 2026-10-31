@@ -1,21 +1,21 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { productImages } from '../utils/product'
+import Photo from './Photo'
 import { ProductMarker, ProductPrice } from './ProductMeta'
 
-// `priority` is for the first row: lazy-loading above-the-fold images delays LCP.
+// `priority`: the first two cards, on screen at load, skip lazy-loading.
 export default function ProductCard({ product, priority = false }) {
   const { t } = useTranslation()
   const [cover] = productImages(product)
   return (
     <Link to={`/shop/${product.id}`} className={product.is_sold ? 'card sold' : 'card'}>
       <div className="card-media">
-        <img
+        <Photo
           src={cover}
           alt=""
+          sizes="(min-width: 1100px) 22vw, (min-width: 768px) 30vw, 50vw"
           loading={priority ? 'eager' : 'lazy'}
-          fetchPriority={priority ? 'high' : 'auto'}
-          decoding="async"
         />
         <ProductMarker product={product} />
       </div>

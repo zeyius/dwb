@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { createCheckout } from '../api/checkout'
 import { getDeliveryRates } from '../api/deliveryRates'
 import { getProductsByIds } from '../api/products'
+import Photo from '../components/Photo'
 import { CardIcon, CashIcon, CheckIcon, ChevronUpIcon, TrashIcon } from '../components/Icons'
 import { useCart } from '../context/CartContext'
 import algeria from '../../supabase/functions/_shared/algeria.json'
@@ -268,7 +269,7 @@ export default function Checkout() {
                   update('phone', normalizePhone(form.phone).replace(/^(\d{4})(\d{2})(\d{2})(\d{2})$/, '$1 $2 $3 $4'))
                 } else blur('phone')
               }}
-              autoComplete="tel-national"
+              autoComplete="tel"
               placeholder="0550 12 34 56"
               maxLength={20}
             />
@@ -371,7 +372,7 @@ export default function Checkout() {
           <ul className="summary-lines">
             {lines.map((l) => (
               <li key={l.id} className={l.sold ? 'summary-line sold' : 'summary-line'}>
-                <img src={l.image} alt="" className="summary-thumb" loading="lazy" decoding="async" width="48" height="60" />
+                <Photo src={l.image} alt="" className="summary-thumb" sizes="48px" width="48" height="60" />
                 <div className="summary-line-info">
                   <span className="summary-line-name">{l.name}</span>
                   {l.size && <span className="muted">{t('product.size', { size: l.size })}</span>}
